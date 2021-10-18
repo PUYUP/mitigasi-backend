@@ -20,7 +20,7 @@ def send_securecode_email(data):
 
     if to and passcode:
         subject = _("Secure Code")
-        from_email = '%s <cliexecboarding@gmail.com>' % APP_NAME
+        from_email = '%s <mitigasicom@gmail.com>' % APP_NAME
 
         # Message
         text = _(

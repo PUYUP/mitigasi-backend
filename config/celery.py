@@ -7,14 +7,14 @@ from django.conf import settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.production')
 os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 
-app = Celery('miniloka')
+app = Celery('mitigasi')
 
 # Using a string here means the worker don't have to serialize
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys
 #   should have a `CELERY_` prefix.
 #   https://docs.celeryproject.org/en/stable/userguide/application.html
-app.config_from_object('config.settings.celeryconfig', namespace='CELERY')
+app.config_from_object('config.settings.celeryconfig', namespace='MITIGASI')
 
 # Load task modules from all registered Django app configs.
 # Auto-find task.py in each apps

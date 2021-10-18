@@ -82,7 +82,7 @@ def dibi(param, request):
             today = timezone.datetime.today().date()
 
             if _href:
-                if ALL or (last_scrapped and last_scrapped.date() < today):
+                if ALL and (last_scrapped and last_scrapped.date() < today):
                     hrefs.append(_href)
                 else:
                     if today == date:

@@ -12,7 +12,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     '103.41.205.122',
-    'api.cliexec.com',
+    'mitigasi.cliexec.com',
 ]
 
 
@@ -78,8 +78,8 @@ CORS_ALLOWED_ORIGINS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'cliexec_db',
-        'USER': 'cliexec_db_user',
+        'NAME': 'mitigasi_db',
+        'USER': 'mitigasi_db_user',
         'PASSWORD': '6+Zwx37G3)EhSx',
         'HOST': '127.0.0.1',   # Or an IP Address that your DB is hosted on
         'PORT': '',
@@ -110,14 +110,14 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient'
         },
-        'KEY_PREFIX': 'cliexec_cache'
+        'KEY_PREFIX': 'mitigasi_cache'
     }
 }
 
 
 # GMAIL SMTP
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'cliexecboarding@gmail.com'
+EMAIL_HOST_USER = 'mitigasicom@gmail.com'
 EMAIL_HOST_PASSWORD = 'ind0nesi@AA'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True

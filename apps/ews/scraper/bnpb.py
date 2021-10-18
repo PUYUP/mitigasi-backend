@@ -17,10 +17,15 @@ def tup_to_dict(tup, dict):
     return dict
 
 
-def dibi(param):
+def dibi(param, request):
     ALL = False
     URL = "https://dibi.bnpb.go.id/xdibi"
+
     identifier = param.get('identifier', '')
+    fetch = param.get('fetch', None)
+
+    if fetch == 'all' and request.user.is_admin:
+        ALL = True
 
     param = {
         'pr': '',

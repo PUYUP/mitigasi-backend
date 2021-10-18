@@ -21,7 +21,7 @@ def dibi(param, request):
     ALL = False
     URL = "https://dibi.bnpb.go.id/xdibi"
 
-    identifier = param.get('identifier', '')
+    identifier = param.get('identifier', '999')
     fetch = param.get('fetch', None)
 
     if fetch == 'all' and request.user.is_superuser:
@@ -47,7 +47,9 @@ def dibi(param, request):
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
         .order_by('-id').last()
-    last_scrapped = last_saved.occur_at if last_saved else None
+
+    future_date = timezone.datetime(int(1900), int(12), int(31))
+    last_scrapped = last_saved.occur_at if last_saved else future_date
 
     dictionary = {}
     disaster_incidents = tup_to_dict(DisasterIdentifier.choices, dictionary)
@@ -82,10 +84,10 @@ def dibi(param, request):
             today = timezone.datetime.today().date()
 
             if _href:
-                if ALL and (last_scrapped and last_scrapped.date() < today):
+                if ALL:
                     hrefs.append(_href)
                 else:
-                    if today == date:
+                    if today == date and last_scrapped.date() < today:
                         hrefs.append(_href)
 
     disaster_objs = list()

@@ -47,7 +47,7 @@ def dibi(param, request):
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
         .order_by('-id').last()
-    last_srapped = last_saved.occur_at if last_saved else None
+    last_scrapped = last_saved.occur_at if last_saved else None
 
     dictionary = {}
     disaster_incidents = tup_to_dict(DisasterIdentifier.choices, dictionary)
@@ -82,7 +82,7 @@ def dibi(param, request):
             today = timezone.datetime.today().date()
 
             if _href:
-                if ALL and last_srapped.date() < today:
+                if ALL or (last_scrapped and last_scrapped.date() < today):
                     hrefs.append(_href)
                 else:
                     if today == date:

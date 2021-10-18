@@ -24,7 +24,7 @@ def dibi(param, request):
     identifier = param.get('identifier', '')
     fetch = param.get('fetch', None)
 
-    if fetch == 'all' and request.user.is_admin:
+    if fetch == 'all' and request.user.is_superuser:
         ALL = True
 
     param = {

@@ -18,7 +18,7 @@ ALLOWED_HOSTS = [
 
 # SENTRY
 sentry_sdk.init(
-    dsn="https://f9decdf750cc404383c1c1c2ccf47d10@o400235.ingest.sentry.io/5931455",
+    dsn="https://31751eb1281646119419f5e2e8d1da54@o400235.ingest.sentry.io/6012012",
     integrations=[DjangoIntegration()],
 
     # Set traces_sample_rate to 1.0 to capture 100%

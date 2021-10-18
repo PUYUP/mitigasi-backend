@@ -14,7 +14,7 @@ app = Celery('mitigasi')
 # - namespace='CELERY' means all celery-related configuration keys
 #   should have a `CELERY_` prefix.
 #   https://docs.celeryproject.org/en/stable/userguide/application.html
-app.config_from_object('config.settings.celeryconfig', namespace='MITIGASI')
+app.config_from_object('config.settings.celeryconfig', namespace='CELERY')
 
 # Load task modules from all registered Django app configs.
 # Auto-find task.py in each apps

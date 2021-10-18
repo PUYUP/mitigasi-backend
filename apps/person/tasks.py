@@ -65,6 +65,8 @@ def send_securecode_email(data):
 
 @shared_task
 def send_securecode_msisdn(data):
+    logging.info(_("Send secure code msisdn run"))
+
     msisdn = data.get('msisdn')
     passcode = data.get('passcode')
     message = '%s - Kode keamanan: %s. Jangan berikan ke siapapun.' % (
@@ -91,4 +93,4 @@ def send_securecode_msisdn(data):
     }
 
     r = requests.get(url, params=payload)
-    logging.info(r.status_code)
+    logging.info(str(r.status_code))

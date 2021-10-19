@@ -8,8 +8,6 @@ from django.core.mail import BadHeaderError, EmailMultiAlternatives
 # Celery config
 from celery import shared_task
 
-APP_NAME = 'Mitigasi'
-
 
 @shared_task
 def send_securecode_email(data):
@@ -17,17 +15,18 @@ def send_securecode_email(data):
 
     to = data.get('email', None)
     passcode = data.get('passcode', None)
+    project_name = data.get('project_name', _("Secure Code"))
 
     if to and passcode:
         subject = _("Secure Code")
-        from_email = '%s <mitigasicom@gmail.com>' % APP_NAME
+        from_email = '%s <mitigasicom@gmail.com>' % project_name
 
         # Message
         text = _(
             "Don't share this Secure Code to everyone "
             "Including %(app_label)s team. Your Secure Code is: " +
             passcode
-        ) % {'app_label': APP_NAME}
+        ) % {'app_label': project_name}
 
         html = _(
             "Don't share this Secure Code to everyone "
@@ -36,7 +35,7 @@ def send_securecode_email(data):
             "<strong>" + passcode + "</strong>"
             "<br /><br />"
             "Happy Coding, <br /> <strong>%(app_label)s</strong>"
-        ) % {'app_label': APP_NAME}
+        ) % {'app_label': project_name}
 
         if subject and from_email:
             try:
@@ -69,8 +68,9 @@ def send_securecode_msisdn(data):
 
     msisdn = data.get('msisdn')
     passcode = data.get('passcode')
+    project_name = data.get('project_name', _("Kode Keamanan"))
     message = '%s - Kode keamanan: %s. Jangan berikan ke siapapun.' % (
-        APP_NAME, passcode)
+        project_name, passcode)
 
     # add 62
     if msisdn[0] == '0':

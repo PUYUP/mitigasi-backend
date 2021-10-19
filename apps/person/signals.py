@@ -4,6 +4,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
 from .tasks import send_securecode_email, send_securecode_msisdn
@@ -43,7 +44,11 @@ def group_save_handler(sender, instance, created, **kwargs):
 def securecode_save_handler(sender, instance, created, **kwargs):
     # run only on resend and created
     if instance.is_used == False and instance.is_verified == False:
-        data = {'passcode': getattr(instance, 'passcode', None)}
+        data = {
+            'project_name': getattr(settings, 'PROJECT_NAME', _("Secure Code")),
+            'passcode': getattr(instance, 'passcode', None)
+        }
+
         issuer = instance.issuer
         issuer_type = instance.issuer_type
         challenges = instance._meta.model.Challenges

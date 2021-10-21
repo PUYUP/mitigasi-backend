@@ -89,7 +89,7 @@ class ReportAPIViewSet(BaseViewSet):
             ) \
             .prefetch_related('location', 'activity', 'comments') \
             .select_related('location', 'activity') \
-            .order_by('-create_at')
+            .order_by('-id')
 
         return queryset
 

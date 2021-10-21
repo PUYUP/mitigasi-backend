@@ -83,7 +83,8 @@ class CommentAPIViewSet(BaseViewSet):
             ) \
             .prefetch_related('content_type', 'activity', 'activity__user') \
             .select_related('content_type', 'activity', 'activity__user') \
-            .order_by('-create_at')
+            .order_by('-id')
+
         return queryset
 
     def list(self, request, format=None):

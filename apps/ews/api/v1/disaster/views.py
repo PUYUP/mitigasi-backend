@@ -35,7 +35,8 @@ class DisasterAPIViewSet(BaseViewSet):
         queryset = Disaster.objects.all()
         queryset = queryset \
             .annotate(comment_count=Count('comments', distinct=True)) \
-            .prefetch_related('locations', 'comments')
+            .prefetch_related('locations', 'comments') \
+            .order_by('-id')
 
         return queryset
 

@@ -46,7 +46,7 @@ def dibi(param, request):
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
-        .order_by('-id').last()
+        .order_by('id').last()
 
     future_date = timezone.datetime(int(1900), int(12), int(31))
     last_scrapped = last_saved.occur_at if last_saved else future_date

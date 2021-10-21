@@ -14,8 +14,9 @@ class BNPB_DIBI_ScraperAPIView(APIView):
     Param;
 
         {
-            "jn": "108", // kode bencana
-            "start": 30 // mulai item ke
+            "fetch": "all", // only for staff
+            "identifier": "108", // kode bencana
+            "start": 0 // mulai item ke
         }
 
     """

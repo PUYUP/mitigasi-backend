@@ -36,7 +36,7 @@ class DisasterAPIViewSet(BaseViewSet):
         queryset = queryset \
             .annotate(comment_count=Count('comments', distinct=True)) \
             .prefetch_related('locations', 'comments') \
-            .order_by('-id')
+            .order_by('-occur_at')
 
         return queryset
 

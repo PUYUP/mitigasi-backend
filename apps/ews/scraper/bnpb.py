@@ -17,14 +17,15 @@ def tup_to_dict(tup, dict):
     return dict
 
 
-def dibi(param, request):
+def dibi(param={}, request=None):
     ALL = False
     URL = "https://dibi.bnpb.go.id/xdibi"
 
     identifier = param.get('identifier', '999')
+    start = param.get('start', 0)
     fetch = param.get('fetch', None)
 
-    if fetch == 'all' and request.user.is_superuser:
+    if request and request.user.is_superuser and fetch == 'all':
         ALL = True
 
     param = {
@@ -35,7 +36,7 @@ def dibi(param, request):
         'bl': '',
         'tb': 2,
         'st': 3,
-        'start': param.get('start', 0)
+        'start': start
     }
     page = requests.get(URL, params=param, verify=False)
     soup = BeautifulSoup(page.content, "html.parser")

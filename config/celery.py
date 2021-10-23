@@ -1,6 +1,8 @@
-from __future__ import absolute_import, unicode_literals
 import os
+
+from __future__ import absolute_import, unicode_literals
 from celery import Celery
+from celery.schedules import crontab
 from django.conf import settings
 
 # set the default Django settings module for the 'celery' program.
@@ -32,7 +34,7 @@ app.conf.beat_schedule = {
         # Task Name (Name Specified in Decorator)
         'task': 'scraping_bnpb_dipi',
         # Schedule
-        'schedule': 5.0,
+        'schedule': crontab(minute=0, hour='*/1'),
     },
 }
 

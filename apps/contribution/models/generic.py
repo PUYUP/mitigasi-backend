@@ -29,6 +29,7 @@ class AbstractConfirmation(AbstractCommonField):
     # can use number 0 to 100
     # or severe - moderate
     accuracy = models.CharField(max_length=15)
+    severity = models.CharField(max_length=255, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     necessary = models.TextField(null=True, blank=True)
     attachments = GenericRelation(
@@ -144,6 +145,7 @@ class AbstractAttachment(AbstractCommonField):
     filemime = models.CharField(max_length=255, editable=False)
 
     name = models.CharField(max_length=255, null=True, blank=True)
+    identifier = models.CharField(max_length=255, null=True, blank=True)
     caption = models.TextField(null=True, blank=True)
 
     class Meta:

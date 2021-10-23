@@ -9,13 +9,17 @@ class DisasterLocationInline(admin.StackedInline):
     model = DisasterLocation
 
 
+class DisasterAttachmentInline(admin.StackedInline):
+    model = DisasterAttachment
+
+
 class DisasterAdminForm(BaseDynamicEntityForm):
     model = Disaster
 
 
 class DisasterExtend(BaseEntityAdmin):
     model = Disaster
-    inlines = (DisasterLocationInline,)
+    inlines = (DisasterAttachmentInline, DisasterLocationInline,)
     form = DisasterAdminForm
 
 

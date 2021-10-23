@@ -1,5 +1,6 @@
+import os
 from decimal import Decimal
-from django.conf import settings
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -81,6 +82,8 @@ class AbstractDisasterLocation(AbstractCommonField):
         related_name='locations',
         on_delete=models.CASCADE
     )
+
+    severity = models.CharField(max_length=255, null=True, blank=True)
 
     country = models.CharField(
         null=True,
@@ -303,3 +306,36 @@ class AbstractDisasterDamage(AbstractCommonField):
             self.get_variety_display(),
             self.get_level_display()
         )
+
+
+class AbstractDisasterAttachment(AbstractCommonField):
+    disaster = models.ForeignKey(
+        'ews.Disaster',
+        related_name='attachments',
+        on_delete=models.CASCADE
+    )
+
+    file = models.FileField(upload_to='attachment/%Y/%m/%d')
+    filename = models.CharField(max_length=255, editable=False)
+    filepath = models.CharField(max_length=255, editable=False)
+    filesize = models.IntegerField(editable=False)
+    filemime = models.CharField(max_length=255, editable=False)
+
+    name = models.CharField(max_length=255, null=True, blank=True)
+    # something like 'shakemap'
+    identifier = models.CharField(max_length=255, null=True, blank=True)
+    caption = models.TextField(null=True, blank=True)
+
+    class Meta:
+        app_label = 'ews'
+        abstract = True
+
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = os.path.basename(self.file.name)
+
+        self.filesize = self.file.size
+        super().save(*args, **kwargs)

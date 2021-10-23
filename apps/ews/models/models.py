@@ -46,3 +46,13 @@ if not is_model_registered('ews', 'DisasterDamage'):
             pass
 
     __all__.append('DisasterDamage')
+
+
+if not is_model_registered('ews', 'DisasterAttachment'):
+    class DisasterAttachment(AbstractDisasterAttachment):
+        history = HistoricalRecords(inherit=True)
+
+        class Meta(AbstractDisasterAttachment.Meta):
+            pass
+
+    __all__.append('DisasterAttachment')

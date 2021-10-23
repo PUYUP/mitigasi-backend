@@ -182,18 +182,20 @@ def dibi(param, request):
                 'sub_locality': sub_locality
             })
 
-        disaster_obj = Disaster(
-            identifier=incident_identifier.get('code'),
-            title=nama_kejadian,
-            occur_at=tgl,
-            source=sumber,
-            description=keterangan,
-            reason=penyebab,
-            chronology=kronologis
-        )
+        # check exists in database or not
+        if not Disaster.objects.filter(identifier=identifier, title=nama_kejadian, occur_at__date=tgl).exists():
+            disaster_obj = Disaster(
+                identifier=incident_identifier.get('code'),
+                title=nama_kejadian,
+                occur_at=tgl,
+                source=sumber,
+                description=keterangan,
+                reason=penyebab,
+                chronology=kronologis
+            )
 
-        disaster_objs.append(disaster_obj)
-        locations.append(location)
+            disaster_objs.append(disaster_obj)
+            locations.append(location)
 
     # insert disaster to database
     if len(disaster_objs) > 0:

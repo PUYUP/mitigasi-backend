@@ -127,6 +127,8 @@ class AbstractReportLocation(AbstractCommonField):
         on_delete=models.CASCADE
     )
 
+    severity = models.CharField(max_length=255, null=True, blank=True)
+
     country = models.CharField(
         null=True,
         blank=True,

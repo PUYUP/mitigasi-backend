@@ -1,5 +1,6 @@
 import requests
 
+from datetime import date as datetime_date
 from django.utils import timezone
 from django.apps import apps
 
@@ -184,7 +185,13 @@ def dibi(param={}, request=None):
             })
 
         # check exists in database or not
-        if not Disaster.objects.filter(identifier=incident_identifier, title=nama_kejadian, occur_at__date=tgl).exists():
+        occur_at = timezone.datetime.strptime(tgl, '%Y-%m-%d')
+
+        if not Disaster.objects.filter(
+            identifier=incident_identifier.get('code'),
+            title=nama_kejadian,
+            occur_at=occur_at
+        ).exists():
             disaster_obj = Disaster(
                 identifier=incident_identifier.get('code'),
                 title=nama_kejadian,

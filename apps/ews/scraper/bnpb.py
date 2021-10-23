@@ -96,7 +96,7 @@ def dibi(param={}, request=None):
 
     # check has new data
     if len(hrefs) <= 0:
-        return None
+        return False
 
     for index, href in enumerate(hrefs):
         url = requests.get(href, verify=False)
@@ -204,94 +204,97 @@ def dibi(param={}, request=None):
             disaster_objs.append(disaster_obj)
             locations.append(location)
 
+    # stop her if not data to be created
+    if len(disaster_objs) <= 0:
+        return False
+
     # insert disaster to database
-    if len(disaster_objs) > 0:
+    try:
+        Disaster.objects.bulk_create(disaster_objs, ignore_conflicts=False)
+    except Exception as e:
+        print(e)
+
+    total = len(locations)
+    disaster_location_objs = list()
+    latest_disaster_objs = Disaster.objects.order_by('-id')[:10]
+
+    for index, item in enumerate(latest_disaster_objs):
+        x = (total - index) - 1
+
         try:
-            Disaster.objects.bulk_create(disaster_objs, ignore_conflicts=False)
-        except Exception as e:
-            print(e)
+            y = locations[x]
+        except IndexError:
+            y = None
 
-        total = len(locations)
-        disaster_location_objs = list()
-        latest_disaster_objs = Disaster.objects.order_by('-id')[:10]
+        if y:
+            latitude = y.get('latitude')
+            longitude = y.get('longitude')
+            level_1 = y.get('administrative_area')
+            level_2 = y.get('sub_administrative_area')
+            level_3 = y.get('locality')
+            level_4 = y.get('sub_locality')
 
-        for index, item in enumerate(latest_disaster_objs):
-            x = (total - index) - 1
+            _l1_name = level_1.get('name')
+            _l1_code = level_1.get('code')
 
-            try:
-                y = locations[x]
-            except IndexError:
-                y = None
+            _l2_name = level_2.get('name')
+            _l2_code = level_2.get('code')
 
-            if y:
-                latitude = y.get('latitude')
-                longitude = y.get('longitude')
-                level_1 = y.get('administrative_area')
-                level_2 = y.get('sub_administrative_area')
-                level_3 = y.get('locality')
-                level_4 = y.get('sub_locality')
+            _common_location = {
+                'disaster': item,
+                'country': 'Indonesia'.upper(),
+                'country_code': 'ID',
 
-                _l1_name = level_1.get('name')
-                _l1_code = level_1.get('code')
+                'latitude': latitude,
+                'longitude': longitude,
 
-                _l2_name = level_2.get('name')
-                _l2_code = level_2.get('code')
+                'administrative_area': _l1_name.upper(),
+                'administrative_area_code': _l1_code,
 
-                _common_location = {
-                    'disaster': item,
-                    'country': 'Indonesia'.upper(),
-                    'country_code': 'ID',
+                'sub_administrative_area': _l2_name.upper(),
+                'sub_administrative_area_code': _l2_code,
+            }
 
-                    'latitude': latitude,
-                    'longitude': longitude,
+            if level_3:
+                for l3 in level_3.get(_l2_code):
+                    _l3_code = l3.get('code')
+                    l4 = level_4.get(_l3_code)
 
-                    'administrative_area': _l1_name.upper(),
-                    'administrative_area_code': _l1_code,
+                    if not l4:
+                        location_obj = DisasterLocation(
+                            **_common_location,
 
-                    'sub_administrative_area': _l2_name.upper(),
-                    'sub_administrative_area_code': _l2_code,
-                }
+                            locality=l3.get('name'),
+                            locality_code=_l3_code,
+                        )
 
-                if level_3:
-                    for l3 in level_3.get(_l2_code):
-                        _l3_code = l3.get('code')
-                        l4 = level_4.get(_l3_code)
-
-                        if not l4:
+                        disaster_location_objs.append(location_obj)
+                    else:
+                        for _l4 in l4:
+                            _l4_code = _l4.get('code')
                             location_obj = DisasterLocation(
                                 **_common_location,
 
                                 locality=l3.get('name'),
                                 locality_code=_l3_code,
+
+                                sub_locality=_l4.get('name'),
+                                sub_locality_code=_l4_code,
                             )
 
                             disaster_location_objs.append(location_obj)
-                        else:
-                            for _l4 in l4:
-                                _l4_code = _l4.get('code')
-                                location_obj = DisasterLocation(
-                                    **_common_location,
+            else:
+                location_obj = DisasterLocation(**_common_location)
+                disaster_location_objs.append(location_obj)
 
-                                    locality=l3.get('name'),
-                                    locality_code=_l3_code,
-
-                                    sub_locality=_l4.get('name'),
-                                    sub_locality_code=_l4_code,
-                                )
-
-                                disaster_location_objs.append(location_obj)
-                else:
-                    location_obj = DisasterLocation(**_common_location)
-                    disaster_location_objs.append(location_obj)
-
-        # insert disaster location
-        if len(disaster_location_objs) > 0:
-            try:
-                DisasterLocation.objects.bulk_create(
-                    disaster_location_objs,
-                    ignore_conflicts=False
-                )
-            except Exception as e:
-                print(e)
+    # insert disaster location
+    if len(disaster_location_objs) > 0:
+        try:
+            DisasterLocation.objects.bulk_create(
+                disaster_location_objs,
+                ignore_conflicts=False
+            )
+        except Exception as e:
+            print(e)
 
     return True

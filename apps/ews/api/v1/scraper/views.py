@@ -30,7 +30,7 @@ class BNPB_DIBI_ScraperAPIView(APIView):
     def post(self, request, format=None):
         param = request.data
         scrape = bnpb.dibi(param, request)
-        if scrape is None:
+        if not scrape:
             return Response({'has_data': False}, status=response_status.HTTP_200_OK)
         return Response({'has_data': True}, status=response_status.HTTP_201_CREATED)
 

@@ -21,7 +21,7 @@ def dibi(param={}, request=None):
     ALL = False
     URL = "https://dibi.bnpb.go.id/xdibi"
 
-    identifier = param.get('identifier', '999')
+    identifier = param.get('identifier', '')  # default scrape all
     start = param.get('start', 0)
     fetch = param.get('fetch', None)
 

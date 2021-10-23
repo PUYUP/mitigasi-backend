@@ -31,7 +31,7 @@ def debug_task(self):
 
 app.conf.beat_schedule = {
     # Scheduler Name
-    'scraping-bnbp-dipi-five-seconds': {
+    'scraping-bnbp-dipi-each-hour': {
         # Task Name (Name Specified in Decorator)
         'task': 'scraping_bnpb_dipi',
         # Schedule

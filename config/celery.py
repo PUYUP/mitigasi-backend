@@ -26,5 +26,16 @@ def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
 
+app.conf.beat_schedule = {
+    # Scheduler Name
+    'scraping-bnbp-dipi-five-seconds': {
+        # Task Name (Name Specified in Decorator)
+        'task': 'scraping_bnpb_dipi',
+        # Schedule
+        'schedule': 5.0,
+    },
+}
+
+
 if __name__ == '__main__':
     app.start()

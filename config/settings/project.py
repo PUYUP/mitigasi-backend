@@ -2,7 +2,6 @@ from datetime import timedelta
 from corsheaders.defaults import default_headers
 
 from .base import *
-from .celery_schedule import *
 
 
 PROJECT_NAME = 'Mitigasi'

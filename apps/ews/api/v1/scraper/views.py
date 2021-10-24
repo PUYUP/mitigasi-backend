@@ -53,4 +53,4 @@ class BMKG_TEWS_ScraperAPIView(APIView):
         param = request.data
         scrape = bmkg.quake()
 
-        return Response(status=response_status.HTTP_200_OK)
+        return Response(status=response_status.HTTP_201_CREATED)

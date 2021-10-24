@@ -186,7 +186,9 @@ class AbstractDisasterLocation(AbstractCommonField):
         abstract = True
 
     def __str__(self) -> str:
-        return '{}'.format(self.disaster.title)
+        if hasattr(self, 'disaster'):
+            return '{}'.format(self.disaster.title)
+        return '{}, {}'.format(self.latitude, self.longitude)
 
     @transaction.atomic
     def save(self, *args, **kwargs):

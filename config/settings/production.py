@@ -114,10 +114,10 @@ CACHES = {
 }
 
 
-# GMAIL SMTP
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'mitigasicom@gmail.com'
-EMAIL_HOST_PASSWORD = 'ind0nesi@AA'
+# SENDGRID SMTP
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = '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'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False

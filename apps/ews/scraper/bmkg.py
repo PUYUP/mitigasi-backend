@@ -2,15 +2,17 @@ import pytz
 import requests
 import geopy.geocoders
 
-from geopy.geocoders import Nominatim, Bing
+from geopy.geocoders import Nominatim
 from collections import defaultdict
 from fake_useragent import UserAgent
 
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.apps import apps
 
 Disaster = apps.get_registered_model('ews', 'Disaster')
 DisasterLocation = apps.get_registered_model('ews', 'DisasterLocation')
+Attribute = apps.get_registered_model('eav', 'Attribute')
 
 
 def quake():
@@ -179,6 +181,24 @@ def quake():
         x = (total - index) - 1
 
         locations = location_objs[x]
+        attributes = disaster_attributes[x][0]
+
+        model_name = obj._meta.model_name
+        model_ct = ContentType.objects.get(model=model_name)
+
+        for key in attributes:
+            value = attributes[key]
+            attr, _created = Attribute.objects.get_or_create(
+                name=key,
+                slug=key,
+                datatype=Attribute.TYPE_FLOAT
+            )
+
+            attr.entity_ct.set([model_ct])
+            setattr(obj.eav, key, value)
+
+        # save object with attribute
+        obj.eav.save()
 
         for x in locations:
             setattr(x, 'disaster', obj)

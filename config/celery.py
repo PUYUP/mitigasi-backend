@@ -37,6 +37,13 @@ app.conf.beat_schedule = {
         # Schedule
         'schedule': crontab(minute=0, hour='*/4'),
     },
+
+    'scraping-bmkg-quake-each-thirteen-minutes': {
+        # Task Name (Name Specified in Decorator)
+        'task': 'scraping_bmkg_quake',
+        # Schedule
+        'schedule': crontab(minute='*/30'),
+    },
 }
 
 

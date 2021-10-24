@@ -16,10 +16,11 @@ def send_securecode_email(data):
     to = data.get('email', None)
     passcode = data.get('passcode', None)
     project_name = data.get('project_name', _("Secure Code"))
+    from_email = data.get('from_email', 'noreply@example.com')
 
     if to and passcode:
         subject = _("Secure Code")
-        from_email = '%s <mitigasicom@gmail.com>' % project_name
+        from_email = '%s <%s>' % (project_name, from_email)
 
         # Message
         text = _(

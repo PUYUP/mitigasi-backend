@@ -55,7 +55,10 @@ def securecode_save_handler(sender, instance, created, **kwargs):
 
         if issuer_type == 'email':
             # Send via email
-            data.update({'email': issuer})
+            data.update({
+                'email': issuer,
+                'from_email': 'noreply@mitigasi.com',
+            })
 
             if instance.challenge == challenges.PASSWORD_RECOVERY:
                 for user in get_users(instance.issuer):

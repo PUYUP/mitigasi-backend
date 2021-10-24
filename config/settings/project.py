@@ -12,6 +12,7 @@ PROJECT_APPS = [
     'django_filters',
     'taggit',
     'simple_history',
+    'django_jsonfield_backport',
 
     'apps.eav',
     'apps.person',

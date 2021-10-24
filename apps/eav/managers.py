@@ -11,6 +11,7 @@ class EntityManager(models.Manager):
     """
     Our custom manager, overrides ``models.Manager``.
     """
+
     _queryset_class = EavQuerySet
 
     def create(self, **kwargs):
@@ -42,11 +43,13 @@ class EntityManager(models.Manager):
         obj.save()
         return obj
 
-    def get_or_create(self, **kwargs):
+    def get_or_create(self, defaults=None, **kwargs):
         """
         Reproduces the behavior of get_or_create, eav friendly.
         """
         try:
             return self.get(**kwargs), False
         except self.model.DoesNotExist:
+            if defaults:
+                kwargs = {**kwargs, **defaults}
             return self.create(**kwargs), True

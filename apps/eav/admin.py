@@ -22,7 +22,11 @@ class BaseEntityAdmin(ModelAdmin):
 
         # Infer correct data from the form.
         fieldsets = self.fieldsets or [(None, {'fields': form.fields.keys()})]
-        adminform = admin.helpers.AdminForm(form, fieldsets, self.prepopulated_fields)
+        adminform = admin.helpers.AdminForm(
+            form,
+            fieldsets,
+            self.prepopulated_fields
+        )
         media = mark_safe(self.media + adminform.media)
 
         context.update(adminform=adminform, media=media)
@@ -36,6 +40,7 @@ class BaseEntityInlineFormSet(BaseInlineFormSet):
     """
     An inline formset that correctly initializes EAV forms.
     """
+
     def add_fields(self, form, index):
         if self.instance:
             setattr(form.instance, self.fk.name, self.instance)
@@ -59,6 +64,7 @@ class BaseEntityInline(InlineModelAdmin):
         with EAV-Django. You can copy or symlink the ``admin`` directory to
         your templates search path (see Django documentation).
     """
+
     formset = BaseEntityInlineFormSet
 
     def get_fieldsets(self, request, obj=None):

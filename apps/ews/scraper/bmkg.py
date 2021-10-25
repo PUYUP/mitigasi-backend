@@ -46,11 +46,9 @@ def quake():
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=Disaster._Identifier.I108) \
-        .exclude(
-            Q(eav__earthquake_status__isnull=True)
-            | Q(eav__earthquake_status='preliminary')
-        ) \
-        .order_by('id').last()
+        .exclude(eav__earthquake_status__isnull=True) \
+        .order_by('id') \
+        .last()
 
     future_date = timezone.datetime(
         int(1900),
@@ -132,10 +130,7 @@ def quake():
                 title=description,
                 identifier=Disaster._Identifier.I108
             ) \
-            .exclude(
-                Q(eav__earthquake_status__isnull=True)
-                | Q(eav__earthquake_status='preliminary')
-            )
+            .exclude(eav__earthquake_status__isnull=True)
 
         if local_datetime > last_saved_dt and not checker.exists():
             disaster_obj: Disaster = Disaster(**disaster_data)
@@ -261,10 +256,12 @@ def quake_realtime():
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(
-            identifier=Disaster._Identifier.I108,
-            eav__earthquake_status='preliminary'
+            Q(identifier=Disaster._Identifier.I108),
+            Q(eav__earthquake_status__isnull=False)
+            & Q(eav__earthquake_status='preliminary')
         ) \
-        .order_by('id').last()
+        .order_by('id') \
+        .last()
 
     future_date = timezone.datetime(
         int(1900),
@@ -303,9 +300,10 @@ def quake_realtime():
 
             checker = Disaster.objects \
                 .filter(
-                    title=area,
-                    occur_at=local_datetime,
-                    eav__earthquake_status='preliminary'
+                    Q(title=area),
+                    Q(occur_at=local_datetime),
+                    Q(eav__earthquake_status__isnull=False)
+                    & Q(eav__earthquake_status='preliminary')
                 )
 
             if local_datetime > last_saved_dt and not checker.exists():

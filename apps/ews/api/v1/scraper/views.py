@@ -1,7 +1,6 @@
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from django.apps import apps
-from django.db.models import Q
 
 from rest_framework import status as response_status
 from rest_framework.views import APIView
@@ -52,15 +51,6 @@ class BMKG_TEWS_ScraperAPIView(APIView):
     throttle_classes = (AnonRateThrottle, UserRateThrottle,)
 
     def get(self, request, format=None):
-        last_saved = Disaster.objects \
-            .filter(identifier=Disaster._Identifier.I108) \
-            .exclude(
-                Q(eav__earthquake_status__isnull=True)
-                | Q(eav__earthquake_status='preliminary')
-            ) \
-            .order_by('id').last()
-
-        print(last_saved)
         return Response(status=response_status.HTTP_200_OK)
 
     @transaction.atomic

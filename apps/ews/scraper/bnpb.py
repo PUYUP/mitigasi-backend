@@ -52,10 +52,7 @@ def dibi(param={}, request=None):
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
-        .exclude(
-            Q(eav__earthquake_status__isnull=True)
-            | Q(eav__earthquake_status='preliminary')
-        ) \
+        .exclude(eav__earthquake_status__isnull=True) \
         .order_by('id') \
         .last()
 
@@ -200,10 +197,8 @@ def dibi(param={}, request=None):
             identifier=incident_identifier.get('code'),
             title=nama_kejadian,
             occur_at=occur_at
-        ).exclude(
-            Q(eav__earthquake_status__isnull=True)
-            | Q(eav__earthquake_status='preliminary')
-        )
+        ) \
+            .exclude(eav__earthquake_status__isnull=True)
 
         if not checker.exists():
             disaster_obj = Disaster(

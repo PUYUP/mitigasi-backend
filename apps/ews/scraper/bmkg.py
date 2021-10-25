@@ -1,6 +1,9 @@
 import pytz
 import requests
 import geopy.geocoders
+import requests  # to get image from the web
+import shutil  # to save it locally
+import os
 
 from geopy.geocoders import Nominatim
 from collections import defaultdict
@@ -9,9 +12,12 @@ from fake_useragent import UserAgent
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.apps import apps
+from django.core.files import File
+from django.conf import settings
 
 Disaster = apps.get_registered_model('ews', 'Disaster')
 DisasterLocation = apps.get_registered_model('ews', 'DisasterLocation')
+DisasterAttachment = apps.get_registered_model('ews', 'DisasterAttachment')
 Attribute = apps.get_registered_model('eav', 'Attribute')
 
 
@@ -56,7 +62,7 @@ def quake():
         dt_split = str(local_datetime).split('+')
         dt_only = dt_split[0]
         shakemap = dt_only.replace('-', '').replace(':', '').replace(' ', '')
-        shakemap_img = '{}{}.mmi.jpg'.format(shakemap_base_url, shakemap)
+        shakemap_url = '{}{}.mmi.jpg'.format(shakemap_base_url, shakemap)
 
         # latitude and longitude
         latitude = coordinates[0]
@@ -180,9 +186,8 @@ def quake():
     for index, obj in enumerate(latest_disaster_objs):
         x = (total - index) - 1
 
-        locations = location_objs[x]
+        # set attribute
         attributes = disaster_attributes[x][0]
-
         model_name = obj._meta.model_name
         model_ct = ContentType.objects.get(model=model_name)
 
@@ -197,9 +202,10 @@ def quake():
             attr.entity_ct.set([model_ct])
             setattr(obj.eav, key, value)
 
-        # save object with attribute
         obj.eav.save()
 
+        # set location
+        locations = location_objs[x]
         for x in locations:
             setattr(x, 'disaster', obj)
 
@@ -210,3 +216,33 @@ def quake():
             )
         except Exception as e:
             print(e)
+
+        # Set up the image URL and filename
+        filename = shakemap_url.split("/")[-1]
+
+        # Open the url image, set stream to True, this will return the stream content.
+        r = requests.get(shakemap_url, stream=True)
+
+        # Check if the image was retrieved successfully
+        if r.status_code == 200:
+            # Set decode_content value to True, otherwise the downloaded image file's size will be zero.
+            r.raw.decode_content = True
+
+            # Retrieve file from root path
+            filepath = os.path.join(settings.PROJECT_PATH, filename)
+
+            # Open a local file with wb ( write binary ) permission.
+            with open(filename, 'wb') as f:
+                shutil.copyfileobj(r.raw, f)
+
+            with open(filepath, 'rb') as f:
+                fobj = File(f)
+                attachment = DisasterAttachment.objects.create(
+                    disaster=obj,
+                    identifier='shakemap'
+                )
+                attachment.file.save(filename, fobj)
+
+            # delete unused file
+            if os.path.exists(filepath):
+                os.remove(filepath)

@@ -317,11 +317,34 @@ class AbstractDisasterAttachment(AbstractCommonField):
         on_delete=models.CASCADE
     )
 
-    file = models.FileField(upload_to='attachment/%Y/%m/%d')
-    filename = models.CharField(max_length=255, editable=False)
-    filepath = models.CharField(max_length=255, editable=False)
-    filesize = models.IntegerField(editable=False)
-    filemime = models.CharField(max_length=255, editable=False)
+    file = models.FileField(
+        upload_to='attachment/%Y/%m/%d',
+        null=True,
+        blank=True
+    )
+    filename = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filepath = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filesize = models.IntegerField(
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filemime = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
 
     name = models.CharField(max_length=255, null=True, blank=True)
     # something like 'shakemap'
@@ -336,8 +359,10 @@ class AbstractDisasterAttachment(AbstractCommonField):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.name:
+        if not self.name and self.file:
             self.name = os.path.basename(self.file.name)
 
-        self.filesize = self.file.size
+        if self.file:
+            self.filesize = self.file.size
+
         super().save(*args, **kwargs)

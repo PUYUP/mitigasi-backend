@@ -138,11 +138,34 @@ class AbstractAttachment(AbstractCommonField):
     object_id = models.CharField(max_length=255)
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    file = models.FileField(upload_to='attachment/%Y/%m/%d')
-    filename = models.CharField(max_length=255, editable=False)
-    filepath = models.CharField(max_length=255, editable=False)
-    filesize = models.IntegerField(editable=False)
-    filemime = models.CharField(max_length=255, editable=False)
+    file = models.FileField(
+        upload_to='attachment/%Y/%m/%d',
+        null=True,
+        blank=True
+    )
+    filename = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filepath = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filesize = models.IntegerField(
+        editable=False,
+        null=True,
+        blank=True
+    )
+    filemime = models.CharField(
+        max_length=255,
+        editable=False,
+        null=True,
+        blank=True
+    )
 
     name = models.CharField(max_length=255, null=True, blank=True)
     identifier = models.CharField(max_length=255, null=True, blank=True)

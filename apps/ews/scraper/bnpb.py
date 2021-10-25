@@ -290,26 +290,28 @@ def dibi(param={}, request=None):
                 disaster_location_objs.append(location_obj)
 
             # set attribute
-            attributes = {
-                'earthquake_epicenter_latitude': latitude,
-                'earthquake_epicenter_longitude': longitude,
-            }
+            # for now for earthquake only
+            if obj.identifier == Disaster._Identifier.I108:
+                attributes = {
+                    'earthquake_epicenter_latitude': latitude,
+                    'earthquake_epicenter_longitude': longitude,
+                }
 
-            model_name = obj._meta.model_name
-            model_ct = ContentType.objects.get(model=model_name)
+                model_name = obj._meta.model_name
+                model_ct = ContentType.objects.get(model=model_name)
 
-            for key in attributes:
-                value = attributes[key]
-                attr, _created = Attribute.objects.get_or_create(
-                    name=key,
-                    slug=key,
-                    datatype=Attribute.TYPE_FLOAT
-                )
+                for key in attributes:
+                    value = attributes[key]
+                    attr, _created = Attribute.objects.get_or_create(
+                        name=key,
+                        slug=key,
+                        datatype=Attribute.TYPE_FLOAT
+                    )
 
-                attr.entity_ct.set([model_ct])
-                setattr(obj.eav, key, value)
+                    attr.entity_ct.set([model_ct])
+                    setattr(obj.eav, key, value)
 
-            obj.eav.save()
+                obj.eav.save()
 
     # insert disaster location
     if len(disaster_location_objs) > 0:

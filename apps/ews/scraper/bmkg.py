@@ -1,19 +1,19 @@
 import pytz
 import requests
-import geopy.geocoders
 import requests  # to get image from the web
 import shutil  # to save it locally
 import os
 
-from geopy.geocoders import Nominatim
+from bs4 import BeautifulSoup
 from collections import defaultdict
-from fake_useragent import UserAgent
 
+from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.apps import apps
 from django.core.files import File
 from django.conf import settings
+from django.db.models import Q
 
 Disaster = apps.get_registered_model('ews', 'Disaster')
 DisasterLocation = apps.get_registered_model('ews', 'DisasterLocation')
@@ -21,6 +21,7 @@ DisasterAttachment = apps.get_registered_model('ews', 'DisasterAttachment')
 Attribute = apps.get_registered_model('eav', 'Attribute')
 
 
+@transaction.atomic
 def quake():
     """
     Shakemap formula:
@@ -40,6 +41,27 @@ def quake():
     disaster_attributes = defaultdict(list)
     disaster_locations = defaultdict(list)
     location_objs = defaultdict(list)
+    local_timezone = pytz.timezone('Asia/Jakarta')
+
+    # last saved disaster
+    last_saved = Disaster.objects \
+        .filter(identifier=Disaster._Identifier.I108) \
+        .exclude(
+            Q(eav__earthquake_status__isnull=True)
+            | Q(eav__earthquake_status='preliminary')
+        ) \
+        .order_by('id').last()
+
+    future_date = timezone.datetime(
+        int(1900),
+        int(12),
+        int(31),
+        tzinfo=local_timezone
+    )
+    future_date_local = future_date.astimezone(local_timezone)
+
+    last_saved_dt = last_saved.occur_at.astimezone(local_timezone)  \
+        if last_saved else future_date_local
 
     for index, item in enumerate(gempa):
         datetime = item.get('DateTime', timezone.now())
@@ -54,7 +76,6 @@ def quake():
             '%Y-%m-%dT%H:%M:%S+00:00'
         )
 
-        local_timezone = pytz.timezone('Asia/Jakarta')
         local_datetime = utc_datetime.replace(tzinfo=pytz.utc)
         local_datetime = local_datetime.astimezone(local_timezone)
 
@@ -105,7 +126,18 @@ def quake():
         }
 
         # check if exists
-        if not Disaster.objects.filter(occur_at=local_datetime, title=description, identifier=Disaster._Identifier.I108).exists():
+        checker = Disaster.objects \
+            .filter(
+                occur_at=local_datetime,
+                title=description,
+                identifier=Disaster._Identifier.I108
+            ) \
+            .exclude(
+                Q(eav__earthquake_status__isnull=True)
+                | Q(eav__earthquake_status='preliminary')
+            )
+
+        if local_datetime > last_saved_dt and not checker.exists():
             disaster_obj: Disaster = Disaster(**disaster_data)
             disaster_objs.append(disaster_obj)
 
@@ -125,69 +157,34 @@ def quake():
 
     if len(disaster_locations) > 0:
         for index in disaster_locations:
-            geopy.geocoders.options.default_timeout = 7
-
-            ua = UserAgent()
-            geolocator = Nominatim(user_agent=ua.google)
-            geolatlon = list()
             names = disaster_locations[index][0]['names']
             levels = disaster_locations[index][0]['levels']
 
-            for name in names:
-                geoloc = geolocator.geocode(
-                    name,
-                    language='id',
-                    addressdetails=True,
-                    namedetails=True
-                )
-
-                if geoloc:
-                    geolatlon.append(
-                        "{}, {}".format(geoloc.latitude, geoloc.longitude)
-                    )
-
-            for i, loc in enumerate(geolatlon):
-                severity = levels[i]
-                geoverse = geolocator.reverse(
-                    loc,
-                    language='id',
-                    addressdetails=True
-                )
-
-                # Country
-                country_code = geoverse.raw['address'].get('country_code')
-                country = geoverse.raw['address'].get('country')
-
-                # administrative_area
-                administrative_area = geoverse.raw['address'].get('state')
+            for index, name in enumerate(names):
+                severity = levels[index]
 
                 # build location object
-                obj: DisasterLocation = DisasterLocation(
-                    country=country,
-                    country_code=country_code,
-                    administrative_area=administrative_area,
-                    latitude=geoverse.latitude,
-                    longitude=geoverse.longitude,
-                    severity=severity,
-                )
+                # latitude and longitude set when user show disaster detail
+                obj = DisasterLocation(
+                    administrative_area=name, severity=severity)
 
                 location_objs[index].append(obj)
 
     # Bulk create
+    # sorted by occur_at
+    new_disaster_objs = sorted(disaster_objs, key=lambda d: d.occur_at)
+
     try:
-        Disaster.objects.bulk_create(disaster_objs, ignore_conflicts=False)
+        Disaster.objects.bulk_create(new_disaster_objs, ignore_conflicts=False)
     except Exception as e:
         print(e)
 
     latest_disaster_objs = Disaster.objects \
         .order_by('-id')[:len(disaster_objs)]
 
-    total = len(disaster_locations)
     for index, obj in enumerate(latest_disaster_objs):
-        x = (total - index) - 1
-
         # set attribute
-        attributes = disaster_attributes[x][0]
+        attributes = disaster_attributes[index][0]
         model_name = obj._meta.model_name
         model_ct = ContentType.objects.get(model=model_name)
 
@@ -205,7 +202,7 @@ def quake():
         obj.eav.save()
 
         # set location
-        locations = location_objs[x]
+        locations = location_objs[index]
         for x in locations:
             setattr(x, 'disaster', obj)
 
@@ -246,3 +243,146 @@ def quake():
             # delete unused file
             if os.path.exists(filepath):
                 os.remove(filepath)
+
+
+@transaction.atomic
+def quake_realtime():
+    url = 'https://inatews.bmkg.go.id/?act=realtimeev'
+    param = {}
+    page = requests.get(url, params=param, verify=False)
+    soup = BeautifulSoup(page.content, "html.parser")
+    results = soup.find_all('form', {'name': 'myform'})
+
+    disaster_objs = list()
+    disaster_attributes = defaultdict(list)
+    location_objs = defaultdict(list)
+    local_timezone = pytz.timezone('Asia/Jakarta')
+
+    # last saved disaster
+    last_saved = Disaster.objects \
+        .filter(
+            identifier=Disaster._Identifier.I108,
+            eav__earthquake_status='preliminary'
+        ) \
+        .order_by('id').last()
+
+    future_date = timezone.datetime(
+        int(1900),
+        int(12),
+        int(31),
+        tzinfo=local_timezone
+    )
+    future_date_local = future_date.astimezone(local_timezone)
+
+    last_saved_dt = last_saved.occur_at.astimezone(local_timezone)  \
+        if last_saved else future_date_local
+
+    for index, form in enumerate(results):
+        waktu = form.find('input', {'name': 'waktu'}) \
+            .get('value').replace('  ', ' ')
+
+        lintang = form.find('input', {'name': 'lintang'}).get('value')
+        bujur = form.find('input', {'name': 'bujur'}).get('value')
+        dalam = form.find('input', {'name': 'dalam'}).get('value')
+        mag = form.find('input', {'name': 'mag'}).get('value')
+        area = form.find('input', {'name': 'area'}).get('value')
+        koordinat = form.find('input', {'name': 'koordinat'}).get('value')
+        status = form.find('input', {'name': 'status'}).get('value')
+
+        if waktu:
+            waktu = waktu.split('.')
+            waktu = waktu[0]
+
+            utc_datetime = timezone.datetime.strptime(
+                waktu,
+                '%Y/%m/%d %H:%M:%S'
+            )
+
+            local_datetime = utc_datetime.replace(tzinfo=pytz.utc)
+            local_datetime = local_datetime.astimezone(local_timezone)
+
+            checker = Disaster.objects \
+                .filter(
+                    title=area,
+                    occur_at=local_datetime,
+                    eav__earthquake_status='preliminary'
+                )
+
+            if local_datetime > last_saved_dt and not checker.exists():
+                data = {
+                    'title': area,
+                    'occur_at': local_datetime,
+                    'source': 'BMKG',
+                    'identifier': Disaster._Identifier.I108,
+                }
+
+                obj = Disaster(**data)
+                disaster_objs.append(obj)
+
+                # collect attribute
+                attrdata = {
+                    'earthquake_epicenter_latitude': lintang,
+                    'earthquake_epicenter_longitude': bujur,
+                    'earthquake_magnitude': mag,
+                    'earthquake_depth': dalam,
+                    'earthquake_status': status,
+                }
+                disaster_attributes[index].append(attrdata)
+
+                # collect location
+                obj = DisasterLocation(latitude=lintang, longitude=bujur,)
+                location_objs[index].append(obj)
+
+    if len(disaster_objs) > 0:
+        # sorted by occur_at
+        new_disaster_objs = sorted(disaster_objs, key=lambda d: d.occur_at)
+
+        try:
+            Disaster.objects.bulk_create(
+                new_disaster_objs,
+                ignore_conflicts=False
+            )
+        except Exception as e:
+            print(e)
+
+    latest_disaster_objs = Disaster.objects \
+        .order_by('-id')[:len(disaster_objs)]
+
+    for index, obj in enumerate(latest_disaster_objs):
+        # set attribute
+        if len(disaster_attributes) > 0:
+            attributes = disaster_attributes[index][0]
+            model_name = obj._meta.model_name
+            model_ct = ContentType.objects.get(model=model_name)
+
+            for key in attributes:
+                value = attributes[key]
+                datatype = Attribute.TYPE_FLOAT
+
+                if 'status' in key:
+                    datatype = Attribute.TYPE_TEXT
+
+                attr, _created = Attribute.objects.get_or_create(
+                    name=key,
+                    slug=key,
+                    datatype=datatype
+                )
+
+                attr.entity_ct.set([model_ct])
+                setattr(obj.eav, key, value)
+
+            obj.eav.save()
+
+        # set location
+        if len(location_objs) > 0:
+            locations = location_objs[index]
+            for loc in locations:
+                setattr(loc, 'disaster', obj)
+
+            try:
+                DisasterLocation.objects.bulk_create(
+                    locations,
+                    ignore_conflicts=True
+                )
+            except Exception as e:
+                print(e)

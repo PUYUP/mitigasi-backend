@@ -3,6 +3,8 @@ import requests
 from django.utils import timezone
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.db.models import Q
 
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -19,6 +21,7 @@ def tup_to_dict(tup, dict):
     return dict
 
 
+@transaction.atomic
 def dibi(param={}, request=None):
     ALL = False
     URL = "https://dibi.bnpb.go.id/xdibi"
@@ -49,7 +52,12 @@ def dibi(param={}, request=None):
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
-        .order_by('id').last()
+        .exclude(
+            Q(eav__earthquake_status__isnull=True)
+            | Q(eav__earthquake_status='preliminary')
+        ) \
+        .order_by('id') \
+        .last()
 
     future_date = timezone.datetime(int(1900), int(12), int(31))
     last_scrapped = last_saved.occur_at if last_saved else future_date
@@ -188,11 +196,16 @@ def dibi(param={}, request=None):
         # check exists in database or not
         occur_at = timezone.datetime.strptime(tgl, '%Y-%m-%d')
 
-        if not Disaster.objects.filter(
+        checker = Disaster.objects.filter(
             identifier=incident_identifier.get('code'),
             title=nama_kejadian,
             occur_at=occur_at
-        ).exists():
+        ).exclude(
+            Q(eav__earthquake_status__isnull=True)
+            | Q(eav__earthquake_status='preliminary')
+        )
+
+        if not checker.exists():
             disaster_obj = Disaster(
                 identifier=incident_identifier.get('code'),
                 title=nama_kejadian,
@@ -211,20 +224,20 @@ def dibi(param={}, request=None):
         return False
 
     # insert disaster to database
+    # sorted by occur_at
+    new_disaster_objs = sorted(disaster_objs, key=lambda d: d.occur_at)
+
     try:
-        Disaster.objects.bulk_create(disaster_objs, ignore_conflicts=False)
+        Disaster.objects.bulk_create(new_disaster_objs, ignore_conflicts=False)
     except Exception as e:
         print(e)
 
-    total = len(locations)
     disaster_location_objs = list()
     latest_disaster_objs = Disaster.objects.order_by('-id')[:10]
 
     for index, obj in enumerate(latest_disaster_objs):
-        x = (total - index) - 1
-
         try:
-            y = locations[x]
+            y = locations[index]
         except IndexError:
             y = None
 

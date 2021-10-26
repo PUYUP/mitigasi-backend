@@ -31,21 +31,21 @@ def debug_task(self):
 
 app.conf.beat_schedule = {
     # Scheduler Name
-    'scraping-bnbp-dipi-each-four-hours': {
+    'scraping-bnbp-dipi-each-4-hours': {
         # Task Name (Name Specified in Decorator)
         'task': 'scraping_bnpb_dipi',
         # Schedule
         'schedule': crontab(minute=0, hour='*/4'),
     },
 
-    'scraping-bmkg-quake-each-twenty-minutes': {
+    'scraping-bmkg-quake-each-20-minutes': {
         # Task Name (Name Specified in Decorator)
         'task': 'scraping_bmkg_quake',
         # Schedule
         'schedule': crontab(minute='*/20'),
     },
 
-    'scraping-bmkg-quake-recent-each-ten-minutes': {
+    'scraping-bmkg-quake-recent-each-10-minutes': {
         # Task Name (Name Specified in Decorator)
         'task': 'scraping_bmkg_quake_recent',
         # Schedule

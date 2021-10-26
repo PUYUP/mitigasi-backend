@@ -7,8 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-from eav.managers import EntityManager
-
 from core.models import AbstractCommonField
 from core.constant import (
     DamageClassify,
@@ -22,11 +20,7 @@ from core.constant import (
 )
 
 
-class Abc(EntityManager):
-    pass
-
-
-class DisasterManager(EntityManager):
+class DisasterManager(models.Manager):
     @transaction.atomic
     def bulk_create(self, objs, **kwargs):
         return super().bulk_create(objs, **kwargs)

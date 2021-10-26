@@ -8,23 +8,14 @@ from bs4 import BeautifulSoup
 from collections import defaultdict
 
 from django.db import transaction
-from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.apps import apps
 from django.core.files import File
 from django.conf import settings
-from django.db.models import Q
 
 Disaster = apps.get_registered_model('ews', 'Disaster')
 DisasterLocation = apps.get_registered_model('ews', 'DisasterLocation')
 DisasterAttachment = apps.get_registered_model('ews', 'DisasterAttachment')
-Attribute = apps.get_registered_model('eav', 'Attribute')
-
-
-def set_attributes():
-    objs = Attribute.objects.filter(entity_ct__model='disaster') \
-        .values_list('slug', flat=True)
-    return {'eav__%s' % x: None for x in objs}
 
 
 @transaction.atomic
@@ -195,21 +186,13 @@ def quake():
     for index, obj in enumerate(latest_disaster_objs):
         # set attribute
         attributes = disaster_attributes[index][0]
-        model_name = obj._meta.model_name
-        model_ct = ContentType.objects.get(model=model_name)
 
-        for key in attributes:
-            value = attributes[key]
-            attr, _created = Attribute.objects.get_or_create(
-                name=key,
-                slug=key,
-                datatype=Attribute.TYPE_FLOAT
-            )
+        if len(attributes) > 0:
+            for key in attributes:
+                value = attributes[key]
+                setattr(obj.eav, key, value)
 
-            attr.entity_ct.set([model_ct])
-            setattr(obj.eav, key, value)
-
-        obj.eav.save()
+            obj.eav.save()
 
         # set location
         locations = location_objs[index]
@@ -364,26 +347,17 @@ def quake_realtime():
         # set attribute
         if len(disaster_attributes) > 0:
             attributes = disaster_attributes[index][0]
-            model_name = obj._meta.model_name
-            model_ct = ContentType.objects.get(model=model_name)
 
-            for key in attributes:
-                value = attributes[key]
-                datatype = Attribute.TYPE_FLOAT
+            if len(attributes) > 0:
+                for key in attributes:
+                    value = attributes[key]
 
-                if 'status' in key:
-                    datatype = Attribute.TYPE_TEXT
+                    if 'status' in key:
+                        setattr(obj.eav, key, value)
+                    else:
+                        setattr(obj.eav, key, value)
 
-                attr, _created = Attribute.objects.get_or_create(
-                    name=key,
-                    slug=key,
-                    datatype=datatype
-                )
-
-                attr.entity_ct.set([model_ct])
-                setattr(obj.eav, key, value)
-
-            obj.eav.save()
+                obj.eav.save()
 
         # set location
         if len(location_objs) > 0:

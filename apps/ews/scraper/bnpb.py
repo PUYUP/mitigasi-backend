@@ -2,9 +2,7 @@ import requests
 
 from django.utils import timezone
 from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Q
 
 from bs4 import BeautifulSoup
 from collections import defaultdict
@@ -12,7 +10,6 @@ from core.constant import DisasterIdentifier
 
 Disaster = apps.get_registered_model('ews', 'Disaster')
 DisasterLocation = apps.get_registered_model('ews', 'DisasterLocation')
-Attribute = apps.get_registered_model('eav', 'Attribute')
 
 
 def tup_to_dict(tup, dict):
@@ -306,18 +303,8 @@ def dibi(param={}, request=None):
                     'disaster_epicenter_longitude': longitude,
                 }
 
-                model_name = obj._meta.model_name
-                model_ct = ContentType.objects.get(model=model_name)
-
                 for key in attributes:
                     value = attributes[key]
-                    attr, _created = Attribute.objects.get_or_create(
-                        name=key,
-                        slug=key,
-                        datatype=Attribute.TYPE_FLOAT
-                    )
-
-                    attr.entity_ct.set([model_ct])
                     setattr(obj.eav, key, value)
 
                 obj.eav.save()

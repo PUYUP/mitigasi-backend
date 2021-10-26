@@ -25,6 +25,13 @@ class BNPB_DIBI_ScraperAPIView(APIView):
     throttle_classes = (AnonRateThrottle, UserRateThrottle,)
 
     def get(self, request, format=None):
+        # last saved disaster
+        last_saved = bnpb.Disaster.objects \
+            .filter(identifier=None) \
+            .exclude(eav__disaster_status='preliminary') \
+            .order_by('id') \
+            .last()
+        print(last_saved)
         return Response(status=response_status.HTTP_200_OK)
 
     @transaction.atomic

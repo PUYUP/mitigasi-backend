@@ -47,13 +47,11 @@ def dibi(param={}, request=None):
     incidents = list()
 
     # last saved disaster
-    last_saved = Disaster.objects \
-        .exclude(eav__disaster_status='preliminary') \
-        .order_by('id') \
-        .last()
-
+    last_saved = Disaster.objects.exclude(eav__disaster_status='preliminary')
     if identifier:
         last_saved = last_saved.filter(identifier=identifier)
+
+    last_saved = last_saved.order_by('id').last()
 
     future_date = timezone.datetime(int(1900), int(12), int(31))
     last_scrapped = last_saved.occur_at if last_saved else future_date

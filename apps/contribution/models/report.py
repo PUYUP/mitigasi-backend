@@ -95,8 +95,8 @@ class AbstractReport(AbstractCommonField):
                 description=self.description,
                 reason=self.reason,
                 chronology=self.chronology,
-                content_type=ctype,
-                object_id=self.id
+                associated_content_type=ctype,
+                associated_object_id=self.id
             )
 
             Location.objects.create(

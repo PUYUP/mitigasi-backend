@@ -1,6 +1,6 @@
 from django.contrib import admin
-from apps.eav.forms import BaseDynamicEntityForm
-from apps.eav.admin import BaseEntityAdmin
+from eav.forms import BaseDynamicEntityForm
+from eav.admin import BaseEntityAdmin
 
 from .models import *
 

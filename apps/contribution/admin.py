@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericStackedInline
 
-from apps.eav.admin import BaseEntityAdmin
-from apps.eav.forms import BaseDynamicEntityForm
+from eav.admin import BaseEntityAdmin
+from eav.forms import BaseDynamicEntityForm
 
 from .models import *
 

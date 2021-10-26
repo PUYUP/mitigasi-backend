@@ -7,6 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+from eav.managers import EntityManager
+
 from core.models import AbstractCommonField
 from core.constant import (
     DamageClassify,
@@ -18,6 +20,16 @@ from core.constant import (
     VictimClassify,
     DisasterIdentifier
 )
+
+
+class Abc(EntityManager):
+    pass
+
+
+class DisasterManager(EntityManager):
+    @transaction.atomic
+    def bulk_create(self, objs, **kwargs):
+        return super().bulk_create(objs, **kwargs)
 
 
 class AbstractDisaster(AbstractCommonField):
@@ -58,15 +70,24 @@ class AbstractDisaster(AbstractCommonField):
 
     # tracking from where this disaster created
     # for now from :report
-    content_type = models.ForeignKey(
+    associated_content_type = models.ForeignKey(
         ContentType,
         related_name='disasters',
         on_delete=models.SET_NULL,
         null=True,
         blank=True
     )
-    object_id = models.CharField(max_length=255, null=True, blank=True)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    associated_object_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True
+    )
+    associated_content_object = GenericForeignKey(
+        'associated_content_type',
+        'associated_object_id'
+    )
+
+    objects = DisasterManager()
 
     class Meta:
         app_label = 'ews'

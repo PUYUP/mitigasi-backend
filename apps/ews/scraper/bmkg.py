@@ -21,6 +21,12 @@ DisasterAttachment = apps.get_registered_model('ews', 'DisasterAttachment')
 Attribute = apps.get_registered_model('eav', 'Attribute')
 
 
+def set_attributes():
+    objs = Attribute.objects.filter(entity_ct__model='disaster') \
+        .values_list('slug', flat=True)
+    return {'eav__%s' % x: None for x in objs}
+
+
 @transaction.atomic
 def quake():
     """
@@ -42,11 +48,12 @@ def quake():
     disaster_locations = defaultdict(list)
     location_objs = defaultdict(list)
     local_timezone = pytz.timezone('Asia/Jakarta')
+    eav_disaster_status = 'preliminary'
 
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=Disaster._Identifier.DIS108) \
-        .exclude(eav__dis108_status__isnull=True) \
+        .exclude(eav__disaster_status=eav_disaster_status) \
         .order_by('id') \
         .last()
 
@@ -61,7 +68,13 @@ def quake():
     last_saved_dt = last_saved.occur_at.astimezone(local_timezone)  \
         if last_saved else future_date_local
 
-    for index, item in enumerate(gempa):
+    # filtered by latest saved
+    last_saved_dt_utc = last_saved_dt.astimezone(pytz.utc).isoformat()
+    filtered_gempa = [
+        d for d in gempa if d.get('DateTime', timezone.now()) > str(last_saved_dt_utc)
+    ]
+
+    for index, item in enumerate(filtered_gempa):
         datetime = item.get('DateTime', timezone.now())
         coordinates = item.get('Coordinates', 0).split(',')
         magnitude = item.get('Magnitude', 0)
@@ -130,18 +143,18 @@ def quake():
                 title=description,
                 identifier=Disaster._Identifier.DIS108
             ) \
-            .exclude(eav__dis108_status__isnull=True)
+            .exclude(eav__disaster_status=eav_disaster_status)
 
         if local_datetime > last_saved_dt and not checker.exists():
-            disaster_obj: Disaster = Disaster(**disaster_data)
-            disaster_objs.append(disaster_obj)
+            obj = Disaster(**disaster_data)
+            disaster_objs.append(obj)
 
             # collect attributes
             disaster_attributes[index].append({
-                'dis108_epicenter_latitude': latitude,
-                'dis108_epicenter_longitude': longitude,
-                'dis108_depth': depth,
-                'dis108_magnitude': magnitude,
+                'disaster_epicenter_latitude': latitude,
+                'disaster_epicenter_longitude': longitude,
+                'disaster_depth': depth,
+                'disaster_magnitude': magnitude,
             })
 
             # collect locations
@@ -155,13 +168,15 @@ def quake():
             names = disaster_locations[index][0]['names']
             levels = disaster_locations[index][0]['levels']
 
-            for index, name in enumerate(names):
-                severity = levels[index]
+            for i, name in enumerate(names):
+                severity = levels[i]
 
                 # build location object
                 # latitude and longitude set when user show disaster detail
                 obj = DisasterLocation(
-                    administrative_area=name, severity=severity)
+                    administrative_area=name,
+                    severity=severity
+                )
 
                 location_objs[index].append(obj)
 
@@ -252,13 +267,13 @@ def quake_realtime():
     disaster_attributes = defaultdict(list)
     location_objs = defaultdict(list)
     local_timezone = pytz.timezone('Asia/Jakarta')
+    eav_disaster_status = 'preliminary'
 
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(
-            Q(identifier=Disaster._Identifier.DIS108),
-            Q(eav__dis108_status__isnull=False)
-            & Q(eav__dis108_status='preliminary')
+            identifier=Disaster._Identifier.DIS108,
+            eav__disaster_status=eav_disaster_status
         ) \
         .order_by('id') \
         .last()
@@ -300,10 +315,9 @@ def quake_realtime():
 
             checker = Disaster.objects \
                 .filter(
-                    Q(title=area),
-                    Q(occur_at=local_datetime),
-                    Q(eav__dis108_status__isnull=False)
-                    & Q(eav__dis108_status='preliminary')
+                    title=area,
+                    occur_at=local_datetime,
+                    eav__disaster_status=status
                 )
 
             if local_datetime > last_saved_dt and not checker.exists():
@@ -319,11 +333,11 @@ def quake_realtime():
 
                 # collect attribute
                 attrdata = {
-                    'dis108_epicenter_latitude': lintang,
-                    'dis108_epicenter_longitude': bujur,
-                    'dis108_magnitude': mag,
-                    'dis108_depth': dalam,
-                    'dis108_status': status,
+                    'disaster_epicenter_latitude': lintang,
+                    'disaster_epicenter_longitude': bujur,
+                    'disaster_magnitude': mag,
+                    'disaster_depth': dalam,
+                    'disaster_status': status,
                 }
                 disaster_attributes[index].append(attrdata)
 

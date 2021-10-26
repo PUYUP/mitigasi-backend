@@ -62,9 +62,20 @@ class DisasterAPIViewSet(BaseViewSet):
         if identifier:
             queryset = queryset.filter(identifier=identifier)
 
-        if status and identifier:
-            dis = 'dis{}_status'.format(identifier)
-            queryset = queryset.filter(**{'eav__%s' % dis: status})
+            try:
+                # if status not define only show confirmed data
+                dis_status = 'dis{}_status'.format(identifier)
+
+                if status:
+                    queryset = queryset.filter(
+                        **{'eav__%s' % dis_status: status}
+                    )
+                else:
+                    queryset = queryset.exclude(
+                        **{'eav__%s__isnull' % dis_status: False}
+                    )
+            except ObjectDoesNotExist:
+                pass
 
         if source:
             queryset = queryset.filter(source__icontains=source)

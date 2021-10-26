@@ -25,10 +25,20 @@ class AbstractReport(AbstractCommonField):
         default=_Identifier.DIS999,
         db_index=True
     )
-    title = models.CharField(max_length=255, db_index=True)
+    title = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True
+    )
     occur_at = models.DateTimeField(db_index=True)
-    # from where this report source?
-    source = models.CharField(max_length=255, null=True, blank=True)
+    # from where this disaster info?
+    source = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True
+    )
     description = models.TextField(null=True, blank=True)
     reason = models.TextField(null=True, blank=True)
     chronology = models.TextField(null=True, blank=True)

@@ -33,7 +33,8 @@ class DisasterAPIViewSet(BaseViewSet):
 
         {
             "identifier": "101",
-            "status": "preliminary"
+            "status": "preliminary",
+            "source": "bmkg"
         }
 
     """
@@ -52,9 +53,11 @@ class DisasterAPIViewSet(BaseViewSet):
         return queryset
 
     def list(self, request, format=None):
+        queryset = self.get_queryset()
+
         identifier = request.query_params.get('identifier')
         status = request.query_params.get('status')
-        queryset = self.get_queryset()
+        source = request.query_params.get('source')
 
         if identifier:
             queryset = queryset.filter(identifier=identifier)
@@ -62,6 +65,9 @@ class DisasterAPIViewSet(BaseViewSet):
         if status and identifier:
             dis = 'dis{}_status'.format(identifier)
             queryset = queryset.filter(**{'eav__%s' % dis: status})
+
+        if source:
+            queryset = queryset.filter(source__icontains=source)
 
         paginator = LimitOffsetPagination()
         paginate_queryset = paginator.paginate_queryset(queryset, request)

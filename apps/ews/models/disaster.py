@@ -20,12 +20,6 @@ from core.constant import (
 )
 
 
-class DisasterManager(models.Manager):
-    @transaction.atomic
-    def bulk_create(self, objs, **kwargs):
-        return super().bulk_create(objs, **kwargs)
-
-
 class AbstractDisaster(AbstractCommonField):
     _Identifier = DisasterIdentifier
 
@@ -80,8 +74,6 @@ class AbstractDisaster(AbstractCommonField):
         'associated_content_type',
         'associated_object_id'
     )
-
-    objects = DisasterManager()
 
     class Meta:
         app_label = 'ews'

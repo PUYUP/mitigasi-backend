@@ -55,6 +55,25 @@ class BMKG_TEWS_ScraperAPIView(APIView):
         return Response(status=response_status.HTTP_201_CREATED)
 
 
+class BMKG_TEWS_Recent_ScraperAPIView(APIView):
+    """
+    Param;
+
+        {}
+
+    """
+    permission_classes = (AllowAny,)
+    throttle_classes = (AnonRateThrottle, UserRateThrottle,)
+
+    def get(self, request, format=None):
+        return Response(status=response_status.HTTP_200_OK)
+
+    @transaction.atomic
+    def post(self, request, format=None):
+        bmkg.quake_recent()
+        return Response(status=response_status.HTTP_201_CREATED)
+
+
 class BMKG_TEWS_Realtime_ScraperAPIView(APIView):
     """
     Param;

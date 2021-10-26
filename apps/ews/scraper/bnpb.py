@@ -294,18 +294,21 @@ def dibi(param={}, request=None):
                 disaster_location_objs.append(location_obj)
 
             # set attribute
-            # for now for earthquake only
+            attributes = {
+                'disaster_source_origin': 'bnpb-dipi',
+            }
+
             if obj.identifier == Disaster._Identifier.DIS108:
-                attributes = {
+                attributes.update({
                     'disaster_epicenter_latitude': latitude,
                     'disaster_epicenter_longitude': longitude,
-                }
+                })
 
-                for key in attributes:
-                    value = attributes[key]
-                    setattr(obj.eav, key, value)
+            for key in attributes:
+                value = attributes[key]
+                setattr(obj.eav, key, value)
 
-                obj.eav.save()
+            obj.eav.save()
 
     # insert disaster location
     if len(disaster_location_objs) > 0:

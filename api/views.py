@@ -28,6 +28,8 @@ class RootAPIView(APIView):
                                              format=format, current_app='ews'),
                 'scraper-bmkg-tews': reverse('ews_api:scraper-bmkg-tews', request=request,
                                              format=format, current_app='ews'),
+                'scraper-bmkg-tews-recent': reverse('ews_api:scraper-bmkg-tews-recent', request=request,
+                                                    format=format, current_app='ews'),
                 'scraper-bmkg-tews-realtime': reverse('ews_api:scraper-bmkg-tews-realtime', request=request,
                                                       format=format, current_app='ews'),
                 'disaster': reverse('ews_api:disaster-list', request=request,

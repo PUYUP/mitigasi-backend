@@ -1,6 +1,5 @@
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from django.apps import apps
 
 from rest_framework import status as response_status
 from rest_framework.views import APIView
@@ -9,9 +8,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 
 from apps.ews.scraper import bnpb, bmkg
-
-Disaster = apps.get_registered_model('ews', 'Disaster')
-DisasterAttachment = apps.get_registered_model('ews', 'DisasterAttachment')
 
 
 class BNPB_DIBI_ScraperAPIView(APIView):

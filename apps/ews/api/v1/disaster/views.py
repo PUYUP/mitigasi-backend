@@ -27,6 +27,17 @@ class BaseViewSet(viewsets.ViewSet):
 
 
 class DisasterAPIViewSet(BaseViewSet):
+    """
+    GET
+    -----
+
+        {
+            "identifier": "101",
+            "status": "preliminary"
+        }
+
+    """
+
     lookup_field = 'uuid'
     permission_classes = (AllowAny,)
     throttle_classes = (AnonRateThrottle, UserRateThrottle,)
@@ -42,10 +53,15 @@ class DisasterAPIViewSet(BaseViewSet):
 
     def list(self, request, format=None):
         identifier = request.query_params.get('identifier')
+        status = request.query_params.get('status')
         queryset = self.get_queryset()
 
         if identifier:
             queryset = queryset.filter(identifier=identifier)
+
+        if status and identifier:
+            dis = 'dis{}_status'.format(identifier)
+            queryset = queryset.filter(**{'eav__%s' % dis: status})
 
         paginator = LimitOffsetPagination()
         paginate_queryset = paginator.paginate_queryset(queryset, request)

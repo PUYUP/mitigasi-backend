@@ -52,7 +52,7 @@ def dibi(param={}, request=None):
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(identifier=identifier) \
-        .exclude(eav__earthquake_status__isnull=True) \
+        .exclude(eav__dis108_status__isnull=True) \
         .order_by('id') \
         .last()
 
@@ -198,7 +198,7 @@ def dibi(param={}, request=None):
             title=nama_kejadian,
             occur_at=occur_at
         ) \
-            .exclude(eav__earthquake_status__isnull=True)
+            .exclude(eav__dis108_status__isnull=True)
 
         if not checker.exists():
             disaster_obj = Disaster(
@@ -299,10 +299,10 @@ def dibi(param={}, request=None):
 
             # set attribute
             # for now for earthquake only
-            if obj.identifier == Disaster._Identifier.I108:
+            if obj.identifier == Disaster._Identifier.DIS108:
                 attributes = {
-                    'earthquake_epicenter_latitude': latitude,
-                    'earthquake_epicenter_longitude': longitude,
+                    'dis108_epicenter_latitude': latitude,
+                    'dis108_epicenter_longitude': longitude,
                 }
 
                 model_name = obj._meta.model_name

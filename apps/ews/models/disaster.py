@@ -26,7 +26,7 @@ class AbstractDisaster(AbstractCommonField):
     identifier = models.CharField(
         max_length=3,
         choices=_Identifier.choices,
-        default=_Identifier.I999,
+        default=_Identifier.DIS999,
         db_index=True
     )
     title = models.CharField(max_length=255, db_index=True)
@@ -226,17 +226,17 @@ class AbstractDisasterVictim(AbstractCommonField):
     gender = models.CharField(
         max_length=3,
         choices=_Gender.choices,
-        default=_Gender.G999
+        default=_Gender.VIG999
     )
     age_group = models.CharField(
         max_length=3,
         choices=_AgeGroup.choices,
-        default=_AgeGroup.AG999
+        default=_AgeGroup.VAG999
     )
     classify = models.CharField(
         max_length=3,
         choices=_Classify.choices,
-        default=_Classify.C999
+        default=_Classify.VIC999
     )
     amount = models.IntegerField(default=0)
 
@@ -272,24 +272,24 @@ class AbstractDisasterDamage(AbstractCommonField):
     classify = models.CharField(
         max_length=3,
         choices=_Classify.choices,
-        default=_Classify.C101
+        default=_Classify.DAC101
     )
     variety = models.CharField(
         max_length=3,
         choices=_Variety.choices,
-        default=_Variety.V999
+        default=_Variety.DAV999
     )
     level = models.CharField(
         max_length=3,
         choices=_Level.choices,
-        default=_Level.L999
+        default=_Level.DAL999
     )
 
     amount = models.IntegerField(default=0)
     metric = models.CharField(
         max_length=3,
         choices=_Metric.choices,
-        default=_Metric.M101
+        default=_Metric.DAM101
     )
 
     class Meta:

@@ -45,8 +45,8 @@ def quake():
 
     # last saved disaster
     last_saved = Disaster.objects \
-        .filter(identifier=Disaster._Identifier.I108) \
-        .exclude(eav__earthquake_status__isnull=True) \
+        .filter(identifier=Disaster._Identifier.DIS108) \
+        .exclude(eav__dis108_status__isnull=True) \
         .order_by('id') \
         .last()
 
@@ -119,7 +119,7 @@ def quake():
             'occur_at': local_datetime,
             'description': description,
             'source': 'BMKG',
-            'identifier': Disaster._Identifier.I108,
+            'identifier': Disaster._Identifier.DIS108,
             'title': description,
         }
 
@@ -128,9 +128,9 @@ def quake():
             .filter(
                 occur_at=local_datetime,
                 title=description,
-                identifier=Disaster._Identifier.I108
+                identifier=Disaster._Identifier.DIS108
             ) \
-            .exclude(eav__earthquake_status__isnull=True)
+            .exclude(eav__dis108_status__isnull=True)
 
         if local_datetime > last_saved_dt and not checker.exists():
             disaster_obj: Disaster = Disaster(**disaster_data)
@@ -138,10 +138,10 @@ def quake():
 
             # collect attributes
             disaster_attributes[index].append({
-                'earthquake_epicenter_latitude': latitude,
-                'earthquake_epicenter_longitude': longitude,
-                'earthquake_depth': depth,
-                'earthquake_magnitude': magnitude,
+                'dis108_epicenter_latitude': latitude,
+                'dis108_epicenter_longitude': longitude,
+                'dis108_depth': depth,
+                'dis108_magnitude': magnitude,
             })
 
             # collect locations
@@ -256,9 +256,9 @@ def quake_realtime():
     # last saved disaster
     last_saved = Disaster.objects \
         .filter(
-            Q(identifier=Disaster._Identifier.I108),
-            Q(eav__earthquake_status__isnull=False)
-            & Q(eav__earthquake_status='preliminary')
+            Q(identifier=Disaster._Identifier.DIS108),
+            Q(eav__dis108_status__isnull=False)
+            & Q(eav__dis108_status='preliminary')
         ) \
         .order_by('id') \
         .last()
@@ -302,8 +302,8 @@ def quake_realtime():
                 .filter(
                     Q(title=area),
                     Q(occur_at=local_datetime),
-                    Q(eav__earthquake_status__isnull=False)
-                    & Q(eav__earthquake_status='preliminary')
+                    Q(eav__dis108_status__isnull=False)
+                    & Q(eav__dis108_status='preliminary')
                 )
 
             if local_datetime > last_saved_dt and not checker.exists():
@@ -311,7 +311,7 @@ def quake_realtime():
                     'title': area,
                     'occur_at': local_datetime,
                     'source': 'BMKG',
-                    'identifier': Disaster._Identifier.I108,
+                    'identifier': Disaster._Identifier.DIS108,
                 }
 
                 obj = Disaster(**data)
@@ -319,11 +319,11 @@ def quake_realtime():
 
                 # collect attribute
                 attrdata = {
-                    'earthquake_epicenter_latitude': lintang,
-                    'earthquake_epicenter_longitude': bujur,
-                    'earthquake_magnitude': mag,
-                    'earthquake_depth': dalam,
-                    'earthquake_status': status,
+                    'dis108_epicenter_latitude': lintang,
+                    'dis108_epicenter_longitude': bujur,
+                    'dis108_magnitude': mag,
+                    'dis108_depth': dalam,
+                    'dis108_status': status,
                 }
                 disaster_attributes[index].append(attrdata)
 

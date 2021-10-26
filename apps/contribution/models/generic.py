@@ -66,7 +66,7 @@ class AbstractReaction(AbstractCommonField):
     identifier = models.CharField(
         max_length=15,
         choices=_Identifier.choices,
-        default=_Identifier.RI101
+        default=_Identifier.REI101
     )
 
     class Meta:

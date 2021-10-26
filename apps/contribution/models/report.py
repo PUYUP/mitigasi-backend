@@ -22,7 +22,7 @@ class AbstractReport(AbstractCommonField):
     identifier = models.CharField(
         max_length=3,
         choices=_Identifier.choices,
-        default=_Identifier.I999,
+        default=_Identifier.DIS999,
         db_index=True
     )
     title = models.CharField(max_length=255, db_index=True)

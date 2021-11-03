@@ -35,10 +35,10 @@ class NotificationApiView(viewsets.ViewSet):
 
         self._queryset = Notification.objects \
             .prefetch_related('recipient', 'actor_content_type', 'actor',
-                              'target_content_type', 'target',
+                              'content_type', 'target',
                               'action_object_content_type', 'action_object') \
             .select_related('recipient', 'actor_content_type',
-                            'target_content_type', 'action_object_content_type')
+                            'content_type', 'action_object_content_type')
 
     def dispatch(self, request, *args, **kwargs):
         self._uuid = kwargs.get('uuid')
@@ -54,7 +54,7 @@ class NotificationApiView(viewsets.ViewSet):
         offer_target = Offer.objects \
             .select_related('propose') \
             .prefetch_related('propose') \
-            .filter(id=OuterRef('target_object_id'))
+            .filter(id=OuterRef('object_id'))
 
         inquiry = Inquiry.objects \
             .filter(id=OuterRef('action_object_object_id'))
@@ -63,7 +63,7 @@ class NotificationApiView(viewsets.ViewSet):
             .select_related('members') \
             .prefetch_related('members') \
             .filter(
-                id=OuterRef('target_object_id'),
+                id=OuterRef('object_id'),
                 members__is_default=True,
                 members__user_id=self.request.user.id
             )
@@ -89,11 +89,11 @@ class NotificationApiView(viewsets.ViewSet):
                 ),
                 target_uuid=Case(
                     When(
-                        target_content_type__model='listing',
+                        content_type__model='listing',
                         then=Subquery(listing.values('uuid')[:1])
                     ),
                     When(
-                        target_content_type__model='offer',
+                        content_type__model='offer',
                         then=Subquery(offer_target.values('uuid')[:1])
                     ),
                 )
@@ -136,15 +136,15 @@ class NotificationApiView(viewsets.ViewSet):
                 total_read=Count('id', filter=Q(unread=False)),
 
                 unread_inquiry=Count(
-                    'target_object_id',
-                    filter=Q(target_content_type__model='listing')
+                    'object_id',
+                    filter=Q(content_type__model='listing')
                     & Q(action_object_content_type__model='inquiry')
                     & Q(unread=True)
                 ),
 
                 unread_offer=Count(
                     'action_object_object_id',
-                    filter=Q(target_content_type__model='inquiry')
+                    filter=Q(content_type__model='inquiry')
                     & Q(action_object_content_type__model='offer')
                     & Q(newest_offer_id=F('action_object_object_id'))
                     & Q(unread=True)

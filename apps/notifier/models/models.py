@@ -9,8 +9,6 @@ __all__ = list()
 # 1
 if not is_model_registered('notifier', 'Notification'):
     class Notification(AbstractNotification):
-        history = HistoricalRecords(inherit=True)
-
         class Meta(AbstractNotification.Meta):
             pass
 

@@ -18,6 +18,8 @@ PROJECT_APPS = [
     'apps.ews',
     'apps.contribution',
     'apps.notifier',
+    'apps.generic',
+    'apps.threat',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + PROJECT_APPS
@@ -39,6 +41,7 @@ AUTHENTICATION_BACKENDS = [
 PROJECT_MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'apps.generic.middleware.InjectRequestToModelMiddleware',
 ]
 MIDDLEWARE = PROJECT_MIDDLEWARE + MIDDLEWARE
 
@@ -147,7 +150,8 @@ TAGGIT_CASE_INSENSITIVE = True
 
 
 # Simple history
-SIMPLE_HISTORY_HISTORY_ID_USE_UUID = True
+# https://django-simple-history.readthedocs.io/
+SIMPLE_HISTORY_FILEFIELD_TO_CHARFIELD = True
 
 
 # CACHING

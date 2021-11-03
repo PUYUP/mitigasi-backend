@@ -12,7 +12,6 @@ from core.models import AbstractCommonField
 class AbstractConfirmation(AbstractCommonField):
     activity = models.ForeignKey(
         'contribution.Activity',
-        related_name='confirmations',
         on_delete=models.CASCADE
     )
 
@@ -20,7 +19,6 @@ class AbstractConfirmation(AbstractCommonField):
     # ex; :disaster, :report
     content_type = models.ForeignKey(
         ContentType,
-        related_name='confirmations',
         on_delete=models.CASCADE
     )
     object_id = models.CharField(max_length=255)
@@ -50,7 +48,6 @@ class AbstractReaction(AbstractCommonField):
 
     activity = models.ForeignKey(
         'contribution.Activity',
-        related_name='reactions',
         on_delete=models.CASCADE
     )
 
@@ -58,7 +55,6 @@ class AbstractReaction(AbstractCommonField):
     # ex; :disaster, :report
     content_type = models.ForeignKey(
         ContentType,
-        related_name='reactions',
         on_delete=models.CASCADE
     )
     object_id = models.CharField(max_length=255)
@@ -80,7 +76,6 @@ class AbstractReaction(AbstractCommonField):
 class AbstractComment(AbstractCommonField):
     activity = models.ForeignKey(
         'contribution.Activity',
-        related_name='comments',
         on_delete=models.CASCADE
     )
 
@@ -88,7 +83,6 @@ class AbstractComment(AbstractCommonField):
     # ex; :disaster, :report
     content_type = models.ForeignKey(
         ContentType,
-        related_name='comments',
         on_delete=models.CASCADE
     )
     object_id = models.CharField(max_length=255)
@@ -132,7 +126,6 @@ class AbstractCommentTree(AbstractCommonField):
 class AbstractAttachment(AbstractCommonField):
     content_type = models.ForeignKey(
         ContentType,
-        related_name='attachments',
         on_delete=models.CASCADE
     )
     object_id = models.CharField(max_length=255)

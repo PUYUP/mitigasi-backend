@@ -9,46 +9,48 @@ from core.models import AbstractCommonField
 
 class AbstractActivity(AbstractCommonField):
     """
-    General purpose of :activity
-    can use for :comment, :confirmation, others
+    Every content from `user` must under `activity`
+    such as `comment`.
 
-    Example;
-    User :report a disaster so :content_type must set to :disaster
-    with :object_id set to null/empty then user complete their report
-    in :report model
+    Example:
+    `content_type` set to `comment`
+    `object_id` set to `comment_id`
 
-    Now has
-    - :confirmation
-    - :comment
+    Flow:
+    1. Create `comment`
+    2. Then `Activity.objects.create(content_object=comment)`
     """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        related_name='activities',
         on_delete=models.SET_NULL,
         null=True
     )
 
     content_type = models.ForeignKey(
         ContentType,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        related_name='activities',
+        on_delete=models.CASCADE
     )
-    object_id = models.CharField(max_length=255, null=True, blank=True)
+    object_id = models.CharField(max_length=255)
     content_object = GenericForeignKey('content_type', 'object_id')
 
     # <app_label>_<model>
     identifier = models.CharField(max_length=255, editable=False)
 
     class Meta:
-        app_label = 'contribution'
         abstract = True
 
-    def __str__(self):
-        return self.identifier
-
-    def save(self, *args, **kwargs):
-        self.identifier = '{}_{}'.format(
+    @property
+    def get_identifier(self):
+        return '{}_{}'.format(
             self.content_type.app_label,
             self.content_type.model
         )
+
+    def __str__(self):
+        return self.get_identifier
+
+    def save(self, *args, **kwargs):
+        self.identifier = self.get_identifier
         super().save(*args, **kwargs)

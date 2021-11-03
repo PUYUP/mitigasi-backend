@@ -126,13 +126,13 @@ class NotificationQuerySet(models.query.QuerySet):
             qset = qset.filter(recipient=recipient)
         return qset.update(emailed=True)
 
-    def mark_as_read(self, recipient=None, actor_object_id=None, target_object_id=None, action_object_id=None):
+    def mark_as_read(self, recipient=None, actor_object_id=None, object_id=None, action_object_id=None):
         qset = self.unread(True)
 
-        if recipient and actor_object_id and target_object_id:
+        if recipient and actor_object_id and object_id:
             qset = qset.filter(recipient=recipient,
                                actor_object_id=actor_object_id,
-                               target_object_id=target_object_id)
+                               object_id=object_id)
 
             if action_object_id:
                 qset = qset.filter(action_object_object_id=action_object_id)
@@ -200,15 +200,15 @@ class AbstractNotification(AbstractCommonField):
     verb = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
 
-    target_content_type = models.ForeignKey(
+    content_type = models.ForeignKey(
         ContentType,
         related_name='notify_target',
         blank=True,
         null=True,
         on_delete=models.CASCADE
     )
-    target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = GenericForeignKey('target_content_type', 'target_object_id')
+    object_id = models.CharField(max_length=255, blank=True, null=True)
+    target = GenericForeignKey('content_type', 'object_id')
 
     action_object_content_type = models.ForeignKey(
         ContentType,

@@ -41,4 +41,12 @@ class RootAPIView(APIView):
                 'comment': reverse('contribution_api:comment-list', request=request,
                                    format=format, current_app='contribution'),
             },
+            'threat': {
+                'hazard': reverse('threat_api:hazard-list', request=request,
+                                  format=format, current_app='threat'),
+            },
+            'generic': {
+                'attachment': reverse('generic_api:attachment-list', request=request,
+                                      format=format, current_app='generic'),
+            },
         })

@@ -17,6 +17,19 @@ class DisasterIdentifier(models.TextChoices):
     DIS999 = '999', _("Lainnya")
 
 
+class HazardClassify(models.TextChoices):
+    HAC101 = '101', _("Banjir")
+    HAC102 = '102', _("Badai")
+    HAC103 = '103', _("Tanah Longsor")
+    HAC104 = '104', _("Kebakaran")
+    HAC105 = '105', _("Gempa Bumi")
+    HAC106 = '106', _("Abrasi")
+    HAC107 = '107', _("Kekeringan")
+    HAC108 = '108', _("Tsunami")
+    HAC109 = '109', _("Letusan Gunung")
+    HAC999 = '999', _("Lainnya")
+
+
 class VictimAgeGroup(models.TextChoices):
     VAG101 = '101', _("Bayi")
     VAG102 = '102', _("Balita")

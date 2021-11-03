@@ -10,8 +10,6 @@ __all__ = list()
 # https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#auth-custom-user
 if not is_model_registered('person', 'User'):
     class User(User):
-        history = HistoricalRecords(inherit=True)
-
         class Meta(User.Meta):
             pass
 
@@ -20,8 +18,6 @@ if not is_model_registered('person', 'User'):
 
 if not is_model_registered('person', 'Profile'):
     class Profile(AbstractProfile):
-        history = HistoricalRecords(inherit=True)
-
         class Meta(AbstractProfile.Meta):
             pass
 
@@ -30,8 +26,6 @@ if not is_model_registered('person', 'Profile'):
 
 if not is_model_registered('person', 'SecureCode'):
     class SecureCode(AbstractSecureCode):
-        history = HistoricalRecords(inherit=True)
-
         class Meta(AbstractSecureCode.Meta):
             pass
 

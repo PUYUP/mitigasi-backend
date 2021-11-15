@@ -12,7 +12,6 @@ PROJECT_APPS = [
     'django_filters',
     'taggit',
     'simple_history',
-    'eav',
 
     'apps.person',
     'apps.notifier',

@@ -18,15 +18,9 @@ def tup_to_dict(tup, dict):
 
 @transaction.atomic
 def dibi(param={}, request=None):
-    ALL = False
-    URL = "https://dibi.bnpb.go.id/xdibi"
-
+    url = "https://dibi.bnpb.go.id/xdibi"
     classify = param.get('classify', '')  # default scrape all
     start = param.get('start', 0)
-    fetch = param.get('fetch', None)
-
-    if request and request.user.is_superuser and fetch == 'all':
-        ALL = True
 
     param = {
         'pr': '',
@@ -38,7 +32,7 @@ def dibi(param={}, request=None):
         'st': 3,
         'start': start
     }
-    page = requests.get(URL, params=param, verify=False)
+    page = requests.get(url, params=param, verify=False)
     soup = BeautifulSoup(page.content, "html.parser")
     results = soup.find(id='mytabel').findChildren('tr')
     permalinks = list()

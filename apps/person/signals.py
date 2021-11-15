@@ -73,6 +73,7 @@ def securecode_save_handler(sender, instance, created, **kwargs):
                     send_securecode_email(data)  # without celery
                 else:
                     send_securecode_email.delay(data)  # with celery
+
         elif issuer_type == 'msisdn':
             # Send via SMS
             data.update({'msisdn': issuer})

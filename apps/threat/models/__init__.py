@@ -1,6 +1,6 @@
 from .models import *
 
-HAZARD_CLASSIFY_MODEL_MAPPER = {
+DISASTER_CLASSIFY_MODEL_MAPPER = {
     '101': Flood,
     '102': Storm,
     '103': Landslide,

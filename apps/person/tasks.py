@@ -2,6 +2,7 @@ import logging
 import smtplib
 import requests
 
+from requests.exceptions import ConnectionError
 from django.utils.translation import ugettext_lazy as _
 from django.core.mail import BadHeaderError, EmailMultiAlternatives
 
@@ -93,5 +94,8 @@ def send_securecode_msisdn(data):
         "Is_Flash": False
     }
 
-    r = requests.get(url, params=payload)
-    logging.info(str(r.status_code))
+    try:
+        r = requests.get(url, params=payload)
+        logging.info(str(r.status_code))
+    except ConnectionError as e:
+        logging.error(str(e))

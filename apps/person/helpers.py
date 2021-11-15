@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils.text import slugify
 
 UserModel = get_user_model()
 
@@ -18,6 +19,7 @@ class AuthBackend(ModelBackend):
             username = kwargs.get(UserModel.USERNAME_FIELD)
 
         # Login with username, email or msisdn
+        # can't login with `email` or `msisdn` until that value verified
         obtain = Q(username__iexact=username) \
             | Q(email__iexact=username) & Q(is_email_verified=True) \
             | Q(msisdn__iexact=username) & Q(is_msisdn_verified=True)
@@ -75,3 +77,32 @@ def build_result_pagination(self, _PAGINATOR, serializer):
     }
 
     return result
+
+
+def generate_username(full_name):
+    name = list(slugify(full_name).replace('-', ''))
+    username = ''.join(name[0:5])
+
+    if UserModel.objects.filter(username=username).count() > 0:
+        users = UserModel.objects \
+            .filter(username__regex=r'^%s[1-9]{1,}$' % username) \
+            .order_by('username') \
+            .values('username')
+
+        if len(users) > 0:
+            last_number_used = list(
+                map(
+                    lambda x: int(x['username'].replace(username, '')),
+                    users
+                )
+            )
+
+            last_number_used.sort()
+            last_number_used = last_number_used[-1]
+            number = last_number_used + 1
+            username = '%s%s' % (username, number)
+        else:
+            username = '%s%s' % (username, 1)
+
+        return username
+    return slugify(username)

@@ -2,6 +2,7 @@ from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 
 from rest_framework import serializers
 from ....utils import get_password_recovery_token_uidb64
@@ -116,9 +117,25 @@ class ValidationSerializer(serializers.Serializer):
     token = serializers.CharField()
     challenge = serializers.CharField()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not settings.PERSON_VERIFICATION_FIELDS:
+            for name, field in self.fields.items():
+                self.fields[name].required = False
+
     def to_internal_value(self, data):
+        # when `data` not empty indicate action need
+        # `securecode` verification like update user `email` and `msisdn`
+        if not settings.PERSON_VERIFICATION_FIELDS and not data:
+            # verification not required
+            # but some action egg update user msisdn and email
+            # still ned validation
+            return super().to_internal_value(data)
+
         try:
             return SecureCode.objects.verified(**data).get()
         except ObjectDoesNotExist:
             raise serializers.ValidationError(
-                detail=_("Validation failed"))
+                detail=_("Validation failed")
+            )

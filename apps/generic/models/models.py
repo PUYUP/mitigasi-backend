@@ -7,6 +7,7 @@ from .comment import *
 from .confirmation import *
 from .reaction import *
 from .impact import *
+from .safetycheck import *
 
 __all__ = list()
 
@@ -43,6 +44,14 @@ if not is_model_registered('generic', 'Comment'):
     __all__.append('Comment')
 
 
+if not is_model_registered('generic', 'CommentTree'):
+    class CommentTree(AbstractCommentTree):
+        class Meta(AbstractCommentTree.Meta):
+            pass
+
+    __all__.append('CommentTree')
+
+
 if not is_model_registered('generic', 'Confirmation'):
     class Confirmation(AbstractConfirmation):
         class Meta(AbstractConfirmation.Meta):
@@ -65,3 +74,11 @@ if not is_model_registered('generic', 'Impact'):
             pass
 
     __all__.append('Impact')
+
+
+if not is_model_registered('generic', 'SafetyCheck'):
+    class SafetyCheck(AbstractSafetyCheck):
+        class Meta(AbstractSafetyCheck.Meta):
+            pass
+
+    __all__.append('SafetyCheck')

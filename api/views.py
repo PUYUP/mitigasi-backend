@@ -23,24 +23,6 @@ class RootAPIView(APIView):
                 'token': reverse('person_api:token-obtain', request=request,
                                  format=format, current_app='person'),
             },
-            'ews': {
-                'scraper-bnpb-dipi': reverse('ews_api:scraper-bnpb-dipi', request=request,
-                                             format=format, current_app='ews'),
-                'scraper-bmkg-tews': reverse('ews_api:scraper-bmkg-tews', request=request,
-                                             format=format, current_app='ews'),
-                'scraper-bmkg-tews-recent': reverse('ews_api:scraper-bmkg-tews-recent', request=request,
-                                                    format=format, current_app='ews'),
-                'scraper-bmkg-tews-realtime': reverse('ews_api:scraper-bmkg-tews-realtime', request=request,
-                                                      format=format, current_app='ews'),
-                'disaster': reverse('ews_api:disaster-list', request=request,
-                                    format=format, current_app='ews'),
-            },
-            'contribution': {
-                'report': reverse('contribution_api:report-list', request=request,
-                                  format=format, current_app='contribution'),
-                'comment': reverse('contribution_api:comment-list', request=request,
-                                   format=format, current_app='contribution'),
-            },
             'threat': {
                 'hazard': reverse('threat_api:hazard-list', request=request,
                                   format=format, current_app='threat'),
@@ -48,5 +30,11 @@ class RootAPIView(APIView):
             'generic': {
                 'attachment': reverse('generic_api:attachment-list', request=request,
                                       format=format, current_app='generic'),
+                'activity': reverse('generic_api:activity-list', request=request,
+                                    format=format, current_app='generic'),
+                'comment': reverse('generic_api:comment-list', request=request,
+                                   format=format, current_app='generic'),
+                'safetycheck': reverse('generic_api:safetycheck-list', request=request,
+                                       format=format, current_app='generic'),
             },
         })

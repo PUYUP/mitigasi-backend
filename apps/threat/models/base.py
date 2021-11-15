@@ -1,42 +1,59 @@
+import logging
+
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
+from django.utils.encoding import smart_str
 
+from apps.generic.helpers import GenericObjSet
 from core.models import AbstractCommonField, BulkCreateReturnIdManager
 from core.constant import HazardClassify
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class HazardManager(BulkCreateReturnIdManager, models.Manager):
     @transaction.atomic
-    def create_risk(self, objs):
-        from . import HAZARD_CLASSIFY_MODEL_MAPPER
-        risk_will_create = dict()
+    def create_disaster(self, objs):
+        from . import DISASTER_CLASSIFY_MODEL_MAPPER
+        disaster_will_create = dict()
 
         for obj in objs:
             classify = obj.get('classify')
-            model = HAZARD_CLASSIFY_MODEL_MAPPER.get(classify)
+            model = DISASTER_CLASSIFY_MODEL_MAPPER.get(classify)
 
             if model:
-                risk_obj = model(hazard_id=obj.get('id'))
-                risk_will_create.setdefault(classify, []).append(risk_obj)
+                disaster_obj = model(hazard_id=obj.get('id'))
+                disaster_will_create.setdefault(
+                    classify, []).append(disaster_obj)
 
-        for classify, value in risk_will_create.items():
-            model = HAZARD_CLASSIFY_MODEL_MAPPER.get(classify)
+        for classify, value in disaster_will_create.items():
+            model = DISASTER_CLASSIFY_MODEL_MAPPER.get(classify)
             if model:
                 try:
                     model.objects.bulk_create(value)
                 except Exception as e:
-                    print(e)
+                    logger.error(e)
 
     @transaction.atomic
     def bulk_create_return_with_id(self, *args, **kwargs):
         created_objs = super().bulk_create_return_id(*args, **kwargs)
-        self.create_risk(created_objs)
+        self.create_disaster(created_objs)
 
 
-class AbstractHazard(AbstractCommonField):
+class AbstractHazard(AbstractCommonField, GenericObjSet):
     _classifies = HazardClassify
+
+    # for scraper this will be empty
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='hazards',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     classify = models.CharField(
         max_length=3,
@@ -94,6 +111,10 @@ class AbstractHazard(AbstractCommonField):
         'generic.Reaction',
         related_query_name='hazard'
     )
+    safetychecks = GenericRelation(
+        'generic.SafetyCheck',
+        related_query_name='hazard'
+    )
 
     class Meta:
         abstract = True
@@ -121,7 +142,7 @@ class AbstractHazard(AbstractCommonField):
         return self.activities.first()
 
     @property
-    def author_name(self):
+    def activity_author(self):
         # when this method access set `source` to user name `activity` submitter
         if self.activity:
             name = self.activity.user.name
@@ -134,56 +155,3 @@ class AbstractHazard(AbstractCommonField):
     @property
     def classify_display(self):
         return self.get_classify_display()
-
-    @transaction.atomic
-    def set_impacts(self, impacts, locations_obj):
-        for index, location in enumerate(locations_obj):
-            ct = ContentType.objects.get_for_model(location)
-            impact = impacts.get(index, None)
-            impacts_obj = list()
-
-            if impact:
-                defaults = {
-                    'content_type': ct,
-                    'object_id': location.id,
-                }
-
-                for x in impact:
-                    o, _created = location.impacts.get_or_create(
-                        defaults=defaults,
-                        **x
-                    )
-
-                    impacts_obj.append(o)
-
-                if len(impacts_obj) > 0:
-                    location.impacts.set(impacts_obj)
-
-    @transaction.atomic
-    def set_locations(self, locations):
-        locations_obj = list()
-        ct = ContentType.objects.get_for_model(self)
-
-        # extract and remove `impacts` from `locations`
-        impacts = {
-            i: v for i, v in enumerate([o.pop('impacts', None) for o in locations])
-        }
-
-        defaults = {
-            'content_type': ct,
-            'object_id': self.id,
-        }
-
-        for data in locations:
-            o, _create = self.locations.update_or_create(
-                defaults=defaults,
-                **data
-            )
-
-            locations_obj.append(o)
-
-        # `impacts` created after `locations` created
-        self.set_impacts(impacts, locations_obj)
-
-        # set `locations` to instance
-        self.locations.set(locations_obj)

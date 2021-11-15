@@ -15,11 +15,10 @@ PROJECT_APPS = [
     'eav',
 
     'apps.person',
-    'apps.ews',
-    'apps.contribution',
     'apps.notifier',
     'apps.generic',
     'apps.threat',
+    'apps.scraper',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + PROJECT_APPS

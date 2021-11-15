@@ -50,7 +50,6 @@ class AbstractAttachment(AbstractCommonField):
         blank=True
     )
 
-    name = models.CharField(max_length=255, null=True, blank=True)
     identifier = models.CharField(max_length=255, null=True, blank=True)
     caption = models.TextField(null=True, blank=True)
 
@@ -63,13 +62,13 @@ class AbstractAttachment(AbstractCommonField):
         abstract = True
 
     def __str__(self) -> str:
-        return self.name
+        return self.filename
 
     def save(self, *args, **kwargs):
-        if not self.name and self.file:
-            self.name = os.path.basename(self.file.name)
-
         if self.file:
             self.filesize = self.file.size
+
+            if not self.filename:
+                self.filename = os.path.basename(self.file.name)
 
         super().save(*args, **kwargs)

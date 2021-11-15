@@ -4,7 +4,9 @@ from appconf import AppConf
 
 
 class PersonAppConf(AppConf):
-    VERIFICATION_FIELDS = ['msisdn', 'email']
+    # use `msisdn` or `email` or both
+    # if empty verification at register not required
+    VERIFICATION_FIELDS = []
 
     class Meta:
         perefix = 'person'

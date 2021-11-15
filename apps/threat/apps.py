@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 
 
 class ThreatConfig(AppConfig):
@@ -8,10 +8,16 @@ class ThreatConfig(AppConfig):
     label = 'threat'
 
     def ready(self):
-        from .signals import create_hazard
+        from .signals import pre_create_hazard, post_create_hazard
+
+        pre_save.connect(
+            pre_create_hazard,
+            sender=self.get_model('Hazard'),
+            dispatch_uid='pre_create_hazard'
+        )
 
         post_save.connect(
-            create_hazard,
+            post_create_hazard,
             sender=self.get_model('Hazard'),
-            dispatch_uid='create_hazard'
+            dispatch_uid='post_create_hazard'
         )

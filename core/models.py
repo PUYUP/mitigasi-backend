@@ -5,7 +5,6 @@ import posixpath
 from django.db import connections, models, transaction
 from django.conf import settings
 from django.db.models.fields import AutoField
-from django.utils import timezone
 from django.db.models import sql
 
 from simple_history.models import HistoricalRecords

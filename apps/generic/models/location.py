@@ -134,12 +134,8 @@ class AbstractLocation(AbstractCommonField):
     latitude = models.FloatField(default=Decimal(0.0), db_index=True)
     longitude = models.FloatField(default=Decimal(0.0), db_index=True)
 
+    impacts = GenericRelation('generic.Impact', related_query_name='location')
     objects = LocationManager()
-
-    impacts = GenericRelation(
-        'generic.Impact',
-        related_query_name='location'
-    )
 
     class Meta:
         app_label = 'generic'

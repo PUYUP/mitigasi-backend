@@ -1,7 +1,7 @@
 from core.loading import is_model_registered
 
 from .base import *
-from .risk import *
+from .disaster import *
 
 __all__ = list()
 

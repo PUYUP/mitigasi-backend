@@ -15,7 +15,7 @@ class AbstractImpact(AbstractCommonField):
     """
     `impact` based on `location` where `hazard` happend
     this because some `hazard` like `earthquake` has different
-    risk each place
+    disaster each place
 
     Kedalaman   1       meter
     identifier  value   metric
@@ -28,6 +28,9 @@ class AbstractImpact(AbstractCommonField):
 
     Jarak pandang   4       meter
     identifier      value   metric
+
+    Kecepatan   10          km
+    identifier  value       metric
 
     ---------
     IDE101 + 1 + MET102                 = Kedalaman 1 Meter
@@ -77,14 +80,14 @@ class AbstractImpact(AbstractCommonField):
 
     identifier = models.CharField(
         max_length=255,
-        help_text=mark_safe(''.join(metric_display)),
+        help_text=mark_safe(''.join(identifier_display)),
         null=True,
         blank=True
     )
     value = models.CharField(max_length=255, null=True, blank=True)
     metric = models.CharField(
         max_length=255,
-        help_text=mark_safe(''.join(identifier_display)),
+        help_text=mark_safe(''.join(metric_display)),
         null=True,
         blank=True
     )

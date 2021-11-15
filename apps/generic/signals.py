@@ -15,15 +15,12 @@ def _create_activity(instance):
 
 
 def create_comment(sender, instance, created, **kwargs):
-    if created:
-        _create_activity(instance)
+    pass
 
 
 def create_confirmation(sender, instance, created, **kwargs):
-    if created:
-        _create_activity(instance)
+    pass
 
 
 def create_reaction(sender, instance, created, **kwargs):
-    if created:
-        _create_activity(instance)
+    pass

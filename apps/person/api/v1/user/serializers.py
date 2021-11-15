@@ -7,6 +7,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
+from apps.person.helpers import generate_username
+
 from ....conf import settings
 from ..securecode.serializers import ValidationSerializer
 from ..profile.serializers import RetrieveProfileSerializer
@@ -31,6 +33,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def matching_validation_field(self, validation, validated_data):
+        # `validation` is securecode object
         # issuer_type must match with some user field
         # this case use email field
         issuer_type = validation.issuer_type
@@ -136,6 +139,19 @@ class CreateUserSerializer(BaseUserSerializer):
             raise serializers.ValidationError(_("Password mismatch."))
 
         return value
+
+    def to_internal_value(self, data):
+        first_name = data.get('first_name')
+        username = data.get('username')
+
+        if not username:
+            auto_username = generate_username(first_name)
+            data.update({'username': auto_username})
+
+        if not first_name:
+            data.update({'first_name': username})
+
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         serializer = RetrieveUserSerializer(

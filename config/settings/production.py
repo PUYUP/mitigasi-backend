@@ -70,7 +70,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost',
     'http://localhost:8100',
     'https://app.mitigasi.com',
-    'https://appmitigasicom.web.app/',
+    'https://appmitigasicom.web.app',
 ]
 
 

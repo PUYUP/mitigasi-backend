@@ -69,6 +69,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost',
     'http://localhost:8100',
+    'https://app.mitigasi.com',
+    'https://appmitigasicom.web.app/',
 ]
 
 

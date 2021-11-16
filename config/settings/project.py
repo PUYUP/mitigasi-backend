@@ -123,6 +123,7 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
     'localhost',
     'localhost:8100',
+    'localhost:8101',
 ]
 
 
@@ -134,6 +135,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost',
     'http://localhost:8100',
+    'http://localhost:8101',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [

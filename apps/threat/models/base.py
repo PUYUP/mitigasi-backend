@@ -72,7 +72,7 @@ class AbstractHazard(AbstractCommonField, GenericObjSet):
         db_index=True,
         help_text=_("Like `Flood at Perumahan Melati Jaya`")
     )
-    occur_at = models.DateTimeField(db_index=True)
+    occur_at = models.DateTimeField(db_index=True, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     reason = models.TextField(null=True, blank=True)
     chronology = models.TextField(null=True, blank=True)

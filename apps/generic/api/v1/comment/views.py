@@ -131,35 +131,44 @@ class CommentAPIViewSet(BaseViewSet):
     def list(self, request):
         content_type = request.query_params.get('content_type')
         object_id = request.query_params.get('object_id')
+        user_id = request.query_params.get('user_id')
+
         queryset = self.get_queryset()
 
-        if not content_type or not object_id:
+        if not content_type:
             raise ValidationError(
-                detail=_("content_type and object_id required"))
+                detail=_("content_type required"))
 
-        ct_param = dict()
-        ct_objs = ContentType.objects.filter(model=content_type)
+        queryset = queryset.filter(content_type__model=content_type)
 
-        for y in ct_objs:
-            model = y.model_class()
-            if model and hasattr(model, 'comments'):
-                ct_param.update({
-                    'model': model._meta.model_name,
-                    'app_label': model._meta.app_label,
-                })
+        if object_id:
+            ct_param = dict()
+            ct_objs = ContentType.objects.filter(model=content_type)
 
-                break
+            for y in ct_objs:
+                model = y.model_class()
+                if model and hasattr(model, 'comments'):
+                    ct_param.update({
+                        'model': model._meta.model_name,
+                        'app_label': model._meta.app_label,
+                    })
 
-        try:
-            ct_obj = ContentType.objects.get(**ct_param)
-        except ObjectDoesNotExist as e:
-            raise NotFound(detail=str(e))
+                    break
 
-        content_object = ct_obj.get_object_for_this_type(uuid=object_id)
-        queryset = queryset.filter(
-            content_type__model=content_type,
-            object_id=content_object.id
-        )
+            try:
+                ct_obj = ContentType.objects.get(**ct_param)
+            except ObjectDoesNotExist as e:
+                raise NotFound(detail=str(e))
+
+            content_object = ct_obj.get_object_for_this_type(uuid=object_id)
+            queryset = queryset.filter(
+                content_type__model=content_type,
+                object_id=content_object.id
+            )
+
+        # filter by user
+        if user_id:
+            queryset = queryset.filter(activities__user__hexid=user_id)
 
         paginator = LimitOffsetPaginationExtend()
         paginate_queryset = paginator.paginate_queryset(queryset, request)

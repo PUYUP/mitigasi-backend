@@ -39,13 +39,17 @@ class BaseCommentSerializer(serializers.ModelSerializer):
         return GeneralModelSerializer
 
     def content_object_representation(self, instance):
-        ret = {'comment_count': instance.content_object.get_comment_count}
-        content_object_model = instance.content_object._meta.model
+        content_object = getattr(instance, 'content_object')
+        if not content_object:
+            return None
+
+        ret = {'comment_count': content_object.get_comment_count}
+        content_object_model = content_object._meta.model
         content_object_serializer = self.content_object_serializer(
             content_object_model
         )
         content_object_serializer_data = content_object_serializer(
-            instance=instance.content_object,
+            instance=content_object,
             context=self.context
         ).data
 
@@ -78,6 +82,27 @@ class ListCommentSerializer(BaseCommentSerializer):
 
     class Meta(BaseCommentSerializer.Meta):
         pass
+
+    def content_object_serializer(self, model):
+        GeneralModelSerializer.Meta.model = model
+        return GeneralModelSerializer
+
+    def to_representation(self, instance):
+        content_object = getattr(instance, 'content_object')
+        data = super().to_representation(instance)
+
+        if content_object:
+            content_object_model = content_object._meta.model
+            content_object_serializer = self.content_object_serializer(
+                content_object_model
+            )
+            content_object_serializer_data = content_object_serializer(
+                instance=content_object,
+                context=self.context
+            ).data
+
+            data.update({'content_object': content_object_serializer_data})
+        return data
 
 
 class CreateCommentSerializer(BaseCommentSerializer):

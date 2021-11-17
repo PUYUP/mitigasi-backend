@@ -41,7 +41,7 @@ class HazardAPIViewSet(BaseViewSet):
 
         {
             "classify": "101",
-            "user": "hexid"
+            "user_id": "hexid"
         }
 
 
@@ -181,7 +181,7 @@ class HazardAPIViewSet(BaseViewSet):
 
     def get_filtered_queryset(self):
         classify = self.request.query_params.get('classify')
-        user = self.request.query_params.get('user')
+        user_id = self.request.query_params.get('user_id')
 
         queryset = self.get_queryset()
 
@@ -197,9 +197,9 @@ class HazardAPIViewSet(BaseViewSet):
                     **{'%s__isnull' % model_name: False}
                 )
 
-        # by user
-        if user:
-            queryset = queryset.filter(activities__user__hexid=user)
+        # by user_id
+        if user_id:
+            queryset = queryset.filter(activities__user__hexid=user_id)
 
         return queryset
 

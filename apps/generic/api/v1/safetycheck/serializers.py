@@ -9,11 +9,10 @@ from rest_framework.exceptions import NotFound
 from apps.generic.api.v1.attachment.serializers import RetrieveAttachmentSerializer
 
 from apps.generic.api.v1.location.serializers import CreateLocationSerializer, RetrieveLocationSerializer, UpdateLocationSerializer
-from apps.threat.api.v1.hazard.serializers import RetrieveHazardSerializer
+from core.drf_helpers import GeneralModelSerializer
 
 SafetyCheck = apps.get_registered_model('generic', 'SafetyCheck')
 Attachment = apps.get_registered_model('generic', 'Attachment')
-Hazard = apps.get_registered_model('threat', 'Hazard')
 
 
 class BaseSafetyCheckSerializer(serializers.ModelSerializer):
@@ -49,6 +48,27 @@ class BaseSafetyCheckSerializer(serializers.ModelSerializer):
             and (x.activities.first().user.id == user.id)
         ]
 
+    def content_object_serializer(self, model):
+        GeneralModelSerializer.Meta.model = model
+        return GeneralModelSerializer
+
+    def to_representation(self, instance):
+        content_object = getattr(instance, 'content_object')
+        data = super().to_representation(instance)
+
+        if content_object:
+            content_object_model = content_object._meta.model
+            content_object_serializer = self.content_object_serializer(
+                content_object_model
+            )
+            content_object_serializer_data = content_object_serializer(
+                instance=content_object,
+                context=self.context
+            ).data
+
+            data.update({'content_object': content_object_serializer_data})
+        return data
+
 
 class RetrieveSafetyCheckSerializer(BaseSafetyCheckSerializer):
     locations = RetrieveLocationSerializer(many=True)
@@ -57,20 +77,6 @@ class RetrieveSafetyCheckSerializer(BaseSafetyCheckSerializer):
     class Meta(BaseSafetyCheckSerializer.Meta):
         pass
 
-    def to_representation(self, instance):
-        content_object = getattr(instance, 'content_object')
-        data = super().to_representation(instance)
-
-        if content_object:
-            if isinstance(content_object, Hazard):
-                serializer = RetrieveHazardSerializer(
-                    instance=instance.content_object,
-                    context=self.context
-                )
-
-                data.update({'content_object': serializer.data})
-        return data
-
 
 class ListSafetyCheckSerializer(BaseSafetyCheckSerializer):
     locations = RetrieveLocationSerializer(many=True)
@@ -78,21 +84,6 @@ class ListSafetyCheckSerializer(BaseSafetyCheckSerializer):
 
     class Meta(BaseSafetyCheckSerializer.Meta):
         pass
-
-    def to_representation(self, instance):
-        content_object = getattr(instance, 'content_object')
-        data = super().to_representation(instance)
-
-        if content_object:
-            if isinstance(content_object, Hazard):
-                serializer = RetrieveHazardSerializer(
-                    instance=instance.content_object,
-                    context=self.context,
-                    fields=('uuid', 'classify', 'incident',)
-                )
-
-                data.update({'content_object': serializer.data})
-        return data
 
 
 class CreateSafetyCheckSerializer(BaseSafetyCheckSerializer):

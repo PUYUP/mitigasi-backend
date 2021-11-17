@@ -17,7 +17,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
-from .serializers import CreateSafetyCheckSerializer, Hazard, ListSafetyCheckSerializer, RetrieveSafetyCheckSerializer, UpdateSafetyCheckSerializer
+from .serializers import CreateSafetyCheckSerializer, ListSafetyCheckSerializer, RetrieveSafetyCheckSerializer, UpdateSafetyCheckSerializer
 from ....permissions import IsActivityAuthorOrReadOnly
 
 Activity = apps.get_registered_model('generic', 'Activity')
@@ -101,7 +101,9 @@ class SafetyCheckAPIViewSet(BaseViewSet):
             .filter(content_type__model=SafetyCheck._meta.model_name, object_id=OuterRef('id'))
 
         queryset = SafetyCheck.objects \
-            .prefetch_related('locations', 'locations__impacts', 'attachments', 'content_object') \
+            .prefetch_related('user', 'content_type', 'locations', 'locations__impacts', 'attachments',
+                              'content_object', 'content_object__user') \
+            .select_related('user', 'content_type') \
             .annotate(authored=Exists(activity.filter(user_id=self.request.user.id))) \
             .order_by('-create_at')
 
@@ -111,7 +113,7 @@ class SafetyCheckAPIViewSet(BaseViewSet):
         content_type = self.request.query_params.get('content_type')
         object_id = self.request.query_params.get('object_id')
         condition = self.request.query_params.get('condition')
-        user = self.request.query_params.get('user')
+        user_id = self.request.query_params.get('user_id')
 
         queryset = self.get_queryset()
 
@@ -119,8 +121,8 @@ class SafetyCheckAPIViewSet(BaseViewSet):
             queryset = queryset.filter(condition=condition)
 
         # by user
-        if user:
-            queryset = queryset.filter(activities__user__hexid=user)
+        if user_id:
+            queryset = queryset.filter(activities__user__hexid=user_id)
 
         if not content_type:
             raise ValidationError(detail=_("content_type required"))

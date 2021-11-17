@@ -66,19 +66,6 @@ class Pagination:
         self.show_full_result_count = True
 
 
-def build_result_pagination(self, _PAGINATOR, serializer):
-    result = {
-        'offset': _PAGINATOR.offset,
-        'limit': _PAGINATOR.limit,
-        'total': _PAGINATOR.count,
-        'previous': _PAGINATOR.get_previous_link(),
-        'next': _PAGINATOR.get_next_link(),
-        'results': serializer.data,
-    }
-
-    return result
-
-
 def generate_username(full_name):
     name = list(slugify(full_name).replace('-', ''))
     username = ''.join(name[0:5])

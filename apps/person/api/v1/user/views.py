@@ -24,13 +24,9 @@ from .serializers import (
 )
 from ..profile.serializers import UpdateProfileSerializer
 from ..password.serializers import ChangePasswordSerializer
-from ....helpers import build_result_pagination
 
 UserModel = get_user_model()
 Profile = apps.get_model('person', 'Profile')
-
-# Define to avoid used ...().paginate__
-_PAGINATOR = LimitOffsetPagination()
 
 
 class BaseViewSet(viewsets.ViewSet):
@@ -141,15 +137,16 @@ class UserViewSet(BaseViewSet):
 
     def list(self, request, format=None):
         queryset = self.queryset()
-        paginator = _PAGINATOR.paginate_queryset(queryset, request)
+        paginator = LimitOffsetPagination()
+        paginate_queryset = paginator.paginate_queryset(queryset, request)
+
         serializer = ListUserSerializer(
-            paginator,
+            paginate_queryset,
             context=self.context,
             many=True
         )
 
-        results = build_result_pagination(self, _PAGINATOR, serializer)
-        return Response(results, status=response_status.HTTP_200_OK)
+        return paginator.get_paginated_response(reversed(serializer.data))
 
     def retrieve(self, request, hexid=None, format=None):
         try:

@@ -111,26 +111,35 @@ class AbstractSecureCode(models.Model):
 
     def clean(self) -> None:
         if not self.pk:
-            # Check user exists if challenge is password_recovery
-            users = UserModel.objects \
-                .filter(Q(msisdn=self.issuer) | Q(email=self.issuer))
+            self.used_validation()
+            self.password_recovery_validation()
 
-            is_validate_email = self.challenge == self.Challenges.VALIDATE_EMAIL
-            is_validate_msisdn = self.challenge == self.Challenges.VALIDATE_MSISDN
-            is_password_recovery = self.challenge == self.Challenges.PASSWORD_RECOVERY
-
-            if is_password_recovery and not users.exists():
-                raise ValidationError({self.challenge: _("User not found")})
-
-            # Check email or msisdn has used
-            if is_validate_email or is_validate_msisdn:
-                q_verified_field = Q(
-                    **{'is_%s_verified' % self.issuer_type: True}
-                )
-
-                if users.filter(q_verified_field).exists():
-                    raise ValidationError(_("Email or Msisdn has used"))
         return super().clean()
+
+    def password_recovery_validation(self):
+        issuer_type = get_issuer_type(self.issuer)
+        q = Q(**{'%s' % issuer_type: self.issuer})
+
+        if self.challenge == self.Challenges.PASSWORD_RECOVERY and not UserModel.objects.filter(q).exists():
+            raise ValidationError(_("Pengguna tidak ditemukan"))
+
+    def used_validation(self):
+        # check used by other users or not
+        issuer_type = get_issuer_type(self.issuer)
+        challenges = [
+            self.Challenges.CHANGE_MSISDN,
+            self.Challenges.CHANGE_EMAIL,
+            self.Challenges.VALIDATE_EMAIL,
+            self.Challenges.VALIDATE_MSISDN
+        ]
+
+        q = Q(**{
+            '%s' % issuer_type: self.issuer,
+            'is_%s_verified' % issuer_type: True
+        })
+
+        if self.challenge in challenges and UserModel.objects.filter(q).exists():
+            raise ValidationError(_("Sudah digunakan pengguna lain"))
 
     def validate_otp(self, *args, **kwargs):
         otp = pyotp.TOTP(self.token)

@@ -5,7 +5,7 @@ from django.db.models.aggregates import Count
 from django.urls import reverse
 
 from rest_framework import serializers
-from apps.generic.api.v1.activity.serializers import GeneralDisasterSerializer
+from apps.generic.api.v1.activity.serializers import GeneralModelSerializer
 
 from apps.generic.api.v1.attachment.serializers import RetrieveAttachmentSerializer
 from apps.generic.api.v1.location.serializers import (
@@ -53,8 +53,8 @@ class BaseHazardSerializer(DynamicFieldsModelSerializer):
         ]
 
     def disaster_serializer(self, model):
-        GeneralDisasterSerializer.Meta.model = model
-        return GeneralDisasterSerializer
+        GeneralModelSerializer.Meta.model = model
+        return GeneralModelSerializer
 
 
 class RetrieveHazardSerializer(BaseHazardSerializer):

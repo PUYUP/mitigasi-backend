@@ -11,14 +11,3 @@ def is_model_registered(app_label, model_name):
         return False
     else:
         return True
-
-
-def build_pagination(paginator, serializer):
-    result = {
-        'count': paginator.count,
-        'next': paginator.get_next_link(),
-        'previous': paginator.get_previous_link(),
-        'results': serializer.data,
-    }
-
-    return result

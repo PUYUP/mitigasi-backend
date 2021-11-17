@@ -20,3 +20,9 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
             existing = set(self.fields)
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
+
+
+class GeneralModelSerializer(DynamicFieldsModelSerializer):
+    class Meta:
+        model = None
+        fields = '__all__'

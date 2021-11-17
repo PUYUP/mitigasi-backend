@@ -7,6 +7,8 @@ from django.urls.base import reverse
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
+from core.drf_helpers import GeneralModelSerializer
+
 Comment = apps.get_registered_model('generic', 'Comment')
 CommentTree = apps.get_registered_model('generic', 'CommentTree')
 
@@ -31,6 +33,24 @@ class BaseCommentSerializer(serializers.ModelSerializer):
             'self': request.build_absolute_uri(self_link),
             'collection': request.build_absolute_uri(collection_link)
         }
+
+    def content_object_serializer(self, model):
+        GeneralModelSerializer.Meta.model = model
+        return GeneralModelSerializer
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        content_object_model = instance.content_object._meta.model
+        content_object_serializer = self.content_object_serializer(
+            content_object_model
+        )
+        content_object_serializer_data = content_object_serializer(
+            instance=instance.content_object,
+            context=self.context
+        ).data
+
+        data.update({'content_object': content_object_serializer_data})
+        return data
 
 
 class ParentCommentSerializer(BaseCommentSerializer):

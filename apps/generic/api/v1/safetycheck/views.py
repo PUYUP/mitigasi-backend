@@ -17,7 +17,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 
-from core.loading import build_pagination
 from .serializers import CreateSafetyCheckSerializer, Hazard, ListSafetyCheckSerializer, RetrieveSafetyCheckSerializer, UpdateSafetyCheckSerializer
 from ....permissions import IsActivityAuthorOrReadOnly
 
@@ -175,8 +174,7 @@ class SafetyCheckAPIViewSet(BaseViewSet):
             many=True
         )
 
-        results = build_pagination(paginator, serializer)
-        return Response(results, status=response_status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
 
     @transaction.atomic
     def create(self, request):

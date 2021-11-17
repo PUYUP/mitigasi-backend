@@ -4,7 +4,7 @@ from django.urls.base import reverse
 from rest_framework import serializers
 
 from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER
-from core.drf_helpers import DynamicFieldsModelSerializer
+from core.drf_helpers import GeneralModelSerializer
 
 Activity = apps.get_registered_model('generic', 'Activity')
 
@@ -33,16 +33,10 @@ class BaseActivitySerializer(serializers.ModelSerializer):
         self.user = self.context.get('request').user
 
 
-class GeneralDisasterSerializer(DynamicFieldsModelSerializer):
-    class Meta:
-        model = None
-        fields = '__all__'
-
-
 class ListActivitySerializer(BaseActivitySerializer):
     def disaster_serializer(self, model):
-        GeneralDisasterSerializer.Meta.model = model
-        return GeneralDisasterSerializer
+        GeneralModelSerializer.Meta.model = model
+        return GeneralModelSerializer
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

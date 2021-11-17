@@ -16,7 +16,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from core.loading import build_pagination
 from .serializers import CreateHazardSerializer, ListHazardSerializer, RetrieveHazardSerializer, UpdateHazardSerializer
 from ....permissions import IsHazardAuthorOrReadOnly
 from ....models import DISASTER_CLASSIFY_MODEL_MAPPER
@@ -227,8 +226,7 @@ class HazardAPIViewSet(BaseViewSet):
             many=True
         )
 
-        results = build_pagination(paginator, serializer)
-        return Response(results, status=response_status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
 
     def retrieve(self, request, uuid=None):
         instance = self.get_object(uuid=uuid)

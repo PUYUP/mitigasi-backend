@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from copy import copy
 
 from django.contrib.contenttypes.models import ContentType
@@ -13,13 +14,36 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.utils.urls import remove_query_param, replace_query_param
 
-from core.loading import build_pagination
-from .serializers import BaseCommentSerializer, CreateCommentSerializer, ListCommentSerializer, RetrieveCommentSerializer, UpdateCommentSerializer
+from .serializers import CreateCommentSerializer, ListCommentSerializer, RetrieveCommentSerializer, UpdateCommentSerializer
 from ....permissions import IsCommentAuthorOrReadOnly
 
 Activity = apps.get_registered_model('generic', 'Activity')
 Comment = apps.get_registered_model('generic', 'Comment')
+
+
+class LimitOffsetPaginationExtend(LimitOffsetPagination):
+    def get_last_link(self):
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.count - self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
+
+    def get_first_link(self):
+        url = self.request.build_absolute_uri()
+        return remove_query_param(url, self.offset_query_param)
+
+    def get_paginated_response(self, data):
+        return Response(OrderedDict([
+            ('count', self.count),
+            ('first', self.get_first_link()),
+            ('last', self.get_last_link()),
+            ('next', self.get_next_link()),
+            ('previous', self.get_previous_link()),
+            ('results', data)
+        ]))
 
 
 class BaseViewSet(viewsets.ViewSet):
@@ -79,13 +103,14 @@ class CommentAPIViewSet(BaseViewSet):
             .filter(content_type__model='comment', object_id=OuterRef('id'))
 
         queryset = Comment.objects \
-            .prefetch_related('user', 'child', 'child__parent', 'child__parent__user') \
+            .prefetch_related('user', 'child', 'child__parent', 'child__parent__user', 'content_object') \
             .select_related('user', 'child', 'child__parent', 'child__parent__user') \
             .annotate(
                 authored=Exists(activity.filter(user_id=self.request.user.id)),
                 reply_count=Count('parents__child')
             ) \
-            .order_by('create_at')
+            .order_by('create_at') \
+            .reverse()
 
         return queryset
 
@@ -135,7 +160,7 @@ class CommentAPIViewSet(BaseViewSet):
             object_id=content_object.id
         )
 
-        paginator = LimitOffsetPagination()
+        paginator = LimitOffsetPaginationExtend()
         paginate_queryset = paginator.paginate_queryset(queryset, request)
         serializer = ListCommentSerializer(
             paginate_queryset,
@@ -143,8 +168,7 @@ class CommentAPIViewSet(BaseViewSet):
             many=True
         )
 
-        results = build_pagination(paginator, serializer)
-        return Response(results, status=response_status.HTTP_200_OK)
+        return paginator.get_paginated_response(reversed(serializer.data))
 
     @transaction.atomic
     def create(self, request):

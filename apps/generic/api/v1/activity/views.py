@@ -13,7 +13,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER
 
-from core.loading import build_pagination
 from .serializers import ListActivitySerializer, RetrieveActivitySerializer, UpdateActivitySerializer
 from ....permissions import IsActivityAuthorOrReadOnly
 
@@ -113,8 +112,7 @@ class ActivityAPIViewSet(BaseViewSet):
             many=True
         )
 
-        results = build_pagination(paginator, serializer)
-        return Response(results, status=response_status.HTTP_200_OK)
+        return paginator.get_paginated_response(serializer.data)
 
     def retrieve(self, request, uuid=None):
         instance = self.get_object(uuid=uuid)

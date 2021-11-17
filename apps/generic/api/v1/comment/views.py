@@ -103,7 +103,8 @@ class CommentAPIViewSet(BaseViewSet):
             .filter(content_type__model='comment', object_id=OuterRef('id'))
 
         queryset = Comment.objects \
-            .prefetch_related('user', 'child', 'child__parent', 'child__parent__user', 'content_object') \
+            .prefetch_related('user', 'child', 'child__parent', 'child__parent__user',
+                              'content_object', 'content_object__comments') \
             .select_related('user', 'child', 'child__parent', 'child__parent__user') \
             .annotate(
                 authored=Exists(activity.filter(user_id=self.request.user.id)),

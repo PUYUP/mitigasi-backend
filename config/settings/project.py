@@ -107,7 +107,7 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    'PAGE_SIZE': 2
+    'PAGE_SIZE': 25
 }
 
 

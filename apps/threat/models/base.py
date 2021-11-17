@@ -155,3 +155,7 @@ class AbstractHazard(AbstractCommonField, GenericObjSet):
     @property
     def classify_display(self):
         return self.get_classify_display()
+
+    @property
+    def get_comment_count(self):
+        return self.comments.count()

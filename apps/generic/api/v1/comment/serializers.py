@@ -38,8 +38,8 @@ class BaseCommentSerializer(serializers.ModelSerializer):
         GeneralModelSerializer.Meta.model = model
         return GeneralModelSerializer
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
+    def content_object_representation(self, instance):
+        ret = {'comment_count': instance.content_object.get_comment_count}
         content_object_model = instance.content_object._meta.model
         content_object_serializer = self.content_object_serializer(
             content_object_model
@@ -49,8 +49,8 @@ class BaseCommentSerializer(serializers.ModelSerializer):
             context=self.context
         ).data
 
-        data.update({'content_object': content_object_serializer_data})
-        return data
+        ret.update(content_object_serializer_data)
+        return ret
 
 
 class ParentCommentSerializer(BaseCommentSerializer):
@@ -64,6 +64,14 @@ class RetrieveCommentSerializer(BaseCommentSerializer):
     class Meta(BaseCommentSerializer.Meta):
         pass
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.update({
+            'content_object': self.content_object_representation(instance)
+        })
+
+        return data
+
 
 class ListCommentSerializer(BaseCommentSerializer):
     parent = ParentCommentSerializer()
@@ -73,6 +81,7 @@ class ListCommentSerializer(BaseCommentSerializer):
 
 
 class CreateCommentSerializer(BaseCommentSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     parent = serializers.SlugRelatedField(
         slug_field='uuid',
         queryset=Comment.objects.all(),
@@ -80,7 +89,8 @@ class CreateCommentSerializer(BaseCommentSerializer):
     )
 
     class Meta(BaseCommentSerializer.Meta):
-        fields = ('description', 'content_type', 'object_id', 'parent',)
+        fields = ('user', 'description', 'content_type',
+                  'object_id', 'parent',)
 
     def to_internal_value(self, data):
         object_id = data.get('object_id', None)
@@ -101,7 +111,8 @@ class CreateCommentSerializer(BaseCommentSerializer):
         if content_type_param:
             try:
                 content_type_obj = ContentType.objects.get(
-                    **content_type_param)
+                    **content_type_param
+                )
             except ObjectDoesNotExist as e:
                 raise NotFound(detail=str(e))
 
@@ -122,8 +133,8 @@ class CreateCommentSerializer(BaseCommentSerializer):
             instance=instance,
             context=self.context
         )
-        data.update(serializer.data)
 
+        data.update(serializer.data)
         return data
 
     @transaction.atomic

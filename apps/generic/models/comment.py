@@ -66,8 +66,8 @@ class AbstractComment(AbstractCommonField):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        if hasattr(self.content_object, 'user') and not self.pk:
-            self.user = self.content_object.user
+        if not self.pk and self.activity:
+            self.user = self.activity.user
 
         super().save(*args, **kwargs)
 

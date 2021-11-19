@@ -2,6 +2,8 @@ from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.aggregates import Count
+from django.db.models.query_utils import Q
 from django.urls.base import reverse
 
 from rest_framework import serializers
@@ -53,6 +55,7 @@ class BaseSafetyCheckSerializer(serializers.ModelSerializer):
         return GeneralModelSerializer
 
     def to_representation(self, instance):
+        request = self.context.get('request')
         content_object = getattr(instance, 'content_object')
         data = super().to_representation(instance)
 
@@ -65,6 +68,31 @@ class BaseSafetyCheckSerializer(serializers.ModelSerializer):
                 instance=content_object,
                 context=self.context
             ).data
+
+            # count latest `safetychecks`
+            if hasattr(content_object, 'safetychecks'):
+                safetychecks = getattr(content_object, 'safetychecks')
+
+                confirmed = safetychecks.filter(
+                    activities__user_id=request.user.id
+                )
+
+                summary = safetychecks \
+                    .aggregate(
+                        safetycheck_affected_count=Count(
+                            'id',
+                            filter=Q(condition='affected')
+                        ),
+                        safetycheck_safe_count=Count(
+                            'id',
+                            filter=Q(condition='safe')
+                        )
+                    )
+
+                content_object_serializer_data.update(summary)
+                content_object_serializer_data.update({
+                    'safetycheck_confirmed': confirmed.exists()
+                })
 
             data.update({'content_object': content_object_serializer_data})
         return data

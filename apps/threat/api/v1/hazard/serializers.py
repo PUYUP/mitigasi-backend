@@ -93,10 +93,7 @@ class RetrieveHazardSerializer(BaseHazardSerializer):
         # some cases this will needed
         # egg create `safetycheck` will return `hazard`
         # with new safetychek value
-        if (
-            'safetycheck_affected_count' not in data or
-            'safetycheck_safe_count' not in data
-        ):
+        if 'safetycheck_confirmed' not in data:
             confirmed = instance.safetychecks \
                 .filter(activities__user_id=request.user.id)
 

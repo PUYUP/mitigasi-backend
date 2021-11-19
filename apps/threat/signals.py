@@ -15,11 +15,11 @@ def pre_create_hazard(sender, instance, **kwargs):
 
 @transaction.atomic
 def post_create_hazard(sender, instance, created, **kwargs):
-    pre_save_instance = instance._pre_save_instance
     classify = instance.classify
     model = mapper.get(classify)
 
-    if pre_save_instance:
+    pre_save_instance = instance._pre_save_instance
+    if pre_save_instance and pre_save_instance.classify != instance.classify:
         pre_model = mapper.get(pre_save_instance.classify)
         pre_model_objs = pre_model.objects.filter(hazard_id=instance.id)
 
@@ -28,4 +28,4 @@ def post_create_hazard(sender, instance, created, **kwargs):
 
     # create something like `flood`
     if model:
-        model.objects.get_or_create(hazard=instance)
+        obj, _created = model.objects.get_or_create(hazard_id=instance.pk)

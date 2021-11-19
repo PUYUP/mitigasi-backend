@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.db import transaction
-from django.db.models import Q, fields
+from django.db.models import Q
 from django.db.models.aggregates import Count
 from django.urls import reverse
 
@@ -13,7 +13,7 @@ from apps.generic.api.v1.location.serializers import (
     RetrieveLocationSerializer,
     UpdateLocationSerializer
 )
-from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER
+from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
 from core.drf_helpers import DynamicFieldsModelSerializer
 
 Hazard = apps.get_registered_model('threat', 'Hazard')
@@ -76,18 +76,19 @@ class RetrieveHazardSerializer(BaseHazardSerializer):
         data = super().to_representation(instance)
 
         # serializing disaster
-        for classify, model in DISASTER_CLASSIFY_MODEL_MAPPER.items():
+        for classify, model in mapper.items():
             model_name = model._meta.model_name
 
             if hasattr(instance, model_name):
                 model_object = getattr(instance, model_name)
-                serializer = self.disaster_serializer(model)
-                serializer_data = serializer(
-                    instance=model_object,
-                    context=self.context
-                ).data
+                if model_object:
+                    serializer = self.disaster_serializer(model)
+                    serializer_data = serializer(
+                        instance=model_object,
+                        context=self.context
+                    ).data
 
-                data.update({'disaster': serializer_data})
+                    data.update({'disaster': serializer_data})
 
         # some cases this will needed
         # egg create `safetycheck` will return `hazard`

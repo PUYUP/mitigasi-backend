@@ -83,7 +83,7 @@ class GenericObjSet(object):
         # set `locations` to instance
         self.locations.set(sorted_locations_obj)
 
-        # set `earthquake` value
+        # set `earthquake` location
         if len(sorted_locations_obj) > 0:
             self.set_eartquake_value(location=sorted_locations_obj[0])
 
@@ -98,7 +98,7 @@ class GenericObjSet(object):
 
         # only for earthquake
         # set `latitude` and `longitude` as epicentrum
-        if self.classify == HazardClassify.HAC105:
+        if hasattr(self, 'classify') and self.classify == HazardClassify.HAC105:
             location = value.get('location', None)
             data = dict()
 

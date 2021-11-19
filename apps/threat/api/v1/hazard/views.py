@@ -18,7 +18,7 @@ from rest_framework.decorators import action
 
 from .serializers import CreateHazardSerializer, ListHazardSerializer, RetrieveHazardSerializer, UpdateHazardSerializer
 from ....permissions import IsHazardAuthorOrReadOnly
-from ....models import DISASTER_CLASSIFY_MODEL_MAPPER
+from ....models import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
 
 Hazard = apps.get_registered_model('threat', 'Hazard')
 SafetyCheck = apps.get_registered_model('generic', 'SafetyCheck')
@@ -138,7 +138,7 @@ class HazardAPIViewSet(BaseViewSet):
             .filter(object_id=OuterRef('id'), content_type__model=Hazard._meta.model_name)
 
         disaster_related = list()
-        for classify, model in DISASTER_CLASSIFY_MODEL_MAPPER.items():
+        for classify, model in mapper.items():
             disaster_related.append(model._meta.model_name)
 
         queryset = Hazard.objects \
@@ -188,7 +188,7 @@ class HazardAPIViewSet(BaseViewSet):
         # by classify
         if classify:
             try:
-                model_name = DISASTER_CLASSIFY_MODEL_MAPPER[classify]._meta.model_name
+                model_name = mapper[classify]._meta.model_name
             except IndexError:
                 model_name = None
 

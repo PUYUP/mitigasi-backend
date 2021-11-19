@@ -17,12 +17,12 @@ logger = logging.getLogger(__name__)
 class HazardManager(BulkCreateReturnIdManager, models.Manager):
     @transaction.atomic
     def create_disaster(self, objs):
-        from . import DISASTER_CLASSIFY_MODEL_MAPPER
+        from . import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
         disaster_will_create = dict()
 
         for obj in objs:
             classify = obj.get('classify')
-            model = DISASTER_CLASSIFY_MODEL_MAPPER.get(classify)
+            model = mapper.get(classify)
 
             if model:
                 disaster_obj = model(hazard_id=obj.get('id'))
@@ -30,7 +30,7 @@ class HazardManager(BulkCreateReturnIdManager, models.Manager):
                     classify, []).append(disaster_obj)
 
         for classify, value in disaster_will_create.items():
-            model = DISASTER_CLASSIFY_MODEL_MAPPER.get(classify)
+            model = mapper.get(classify)
             if model:
                 try:
                     model.objects.bulk_create(value)

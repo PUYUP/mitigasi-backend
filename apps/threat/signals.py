@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from .models import DISASTER_CLASSIFY_MODEL_MAPPER
+from .models import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
 
 
 @transaction.atomic
@@ -15,7 +15,6 @@ def pre_create_hazard(sender, instance, **kwargs):
 
 @transaction.atomic
 def post_create_hazard(sender, instance, created, **kwargs):
-    mapper = DISASTER_CLASSIFY_MODEL_MAPPER
     pre_save_instance = instance._pre_save_instance
     classify = instance.classify
     model = mapper.get(classify)
@@ -27,6 +26,6 @@ def post_create_hazard(sender, instance, created, **kwargs):
         if pre_model_objs.exists():
             pre_model_objs.delete()
 
-    # create `flood`
+    # create something like `flood`
     if model:
         model.objects.get_or_create(hazard=instance)

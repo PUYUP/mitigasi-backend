@@ -3,8 +3,11 @@ import os
 import uuid
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import FieldError
 from django.db import transaction, IntegrityError
 from django.core.files.base import ContentFile
+
+from core.constant import HazardClassify
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -80,10 +83,43 @@ class GenericObjSet(object):
         # set `locations` to instance
         self.locations.set(sorted_locations_obj)
 
+        # set `earthquake` value
+        if len(sorted_locations_obj) > 0:
+            self.set_eartquake_value(location=sorted_locations_obj[0])
+
     def verify_attachments(self, attachments):
         return [
             x for x in attachments if x.activities.first().user.id == self.activities.first().user.id
         ]
+
+    @transaction.atomic
+    def set_eartquake_value(self, **value):
+        from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
+
+        # only for earthquake
+        # set `latitude` and `longitude` as epicentrum
+        if self.classify == HazardClassify.HAC105:
+            location = value.get('location', None)
+            data = dict()
+
+            if location:
+                data.update({
+                    'latitude': location.latitude,
+                    'longitude': location.longitude,
+                })
+
+            disaster_model = mapper.get(self.classify, None)
+            model_name = disaster_model._meta.model_name
+
+            # but make sure it has activities
+            # indicate submit by user, not scraper
+            if disaster_model and self.activities.filter(user__isnull=False).exists() and hasattr(self, model_name) and data:
+                try:
+                    obj = disaster_model.objects.filter(hazard_id=self.id)
+                    if obj.exists():
+                        obj.update(**data)
+                except FieldError as e:
+                    print(e)
 
     @transaction.atomic
     def set_attachments(self, attachments, bypass_verification=False):

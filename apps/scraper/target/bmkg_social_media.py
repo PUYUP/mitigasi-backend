@@ -5,7 +5,6 @@ import shutil
 import requests
 
 from django.db import transaction
-from django.utils import timezone
 from django.core.files import File
 from django.conf import settings
 from django.apps import apps

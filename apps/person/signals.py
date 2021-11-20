@@ -77,7 +77,7 @@ def securecode_save_handler(sender, instance, created, **kwargs):
         elif issuer_type == 'msisdn':
             # Send via SMS
             data.update({'msisdn': issuer})
-            """
+
             if instance.challenge == challenges.PASSWORD_RECOVERY:
                 for user in get_users(instance.issuer):
                     # send to multiple users
@@ -91,7 +91,6 @@ def securecode_save_handler(sender, instance, created, **kwargs):
                     send_securecode_msisdn(data)  # without celery
                 else:
                     send_securecode_msisdn.delay(data)  # with celery
-            """
 
         # mark oldest SecureCode as expired
         cls = instance.__class__

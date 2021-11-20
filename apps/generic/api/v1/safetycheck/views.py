@@ -15,8 +15,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.pagination import LimitOffsetPagination
 
+from core.drf_helpers import LimitOffsetPaginationExtend
 from .serializers import CreateSafetyCheckSerializer, ListSafetyCheckSerializer, RetrieveSafetyCheckSerializer, UpdateSafetyCheckSerializer
 from ....permissions import IsActivityAuthorOrReadOnly
 
@@ -105,7 +105,7 @@ class SafetyCheckAPIViewSet(BaseViewSet):
                               'content_object', 'content_object__user') \
             .select_related('user', 'content_type') \
             .annotate(authored=Exists(activity.filter(user_id=self.request.user.id))) \
-            .order_by('-create_at')
+            .reverse()
 
         return queryset
 
@@ -114,8 +114,14 @@ class SafetyCheckAPIViewSet(BaseViewSet):
         object_id = self.request.query_params.get('object_id')
         condition = self.request.query_params.get('condition')
         user_id = self.request.query_params.get('user_id')
+        sort = self.request.query_params.get('sort')
 
         queryset = self.get_queryset()
+
+        if sort != 'newest':
+            queryset = queryset.order_by('create_at')
+        else:
+            queryset = queryset.order_by('-create_at')
 
         if condition:
             queryset = queryset.filter(condition=condition)
@@ -168,7 +174,7 @@ class SafetyCheckAPIViewSet(BaseViewSet):
 
     def list(self, request):
         queryset = self.get_filtered_queryset()
-        paginator = LimitOffsetPagination()
+        paginator = LimitOffsetPaginationExtend()
         paginate_queryset = paginator.paginate_queryset(queryset, request)
         serializer = ListSafetyCheckSerializer(
             paginate_queryset,
@@ -176,7 +182,7 @@ class SafetyCheckAPIViewSet(BaseViewSet):
             many=True
         )
 
-        return paginator.get_paginated_response(serializer.data)
+        return paginator.get_paginated_response(reversed(serializer.data))
 
     @transaction.atomic
     def create(self, request):

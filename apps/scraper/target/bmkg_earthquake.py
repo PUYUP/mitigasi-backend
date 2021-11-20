@@ -4,9 +4,6 @@ import requests  # to get image from the web
 import shutil  # to save it locally
 import os
 
-from bs4 import BeautifulSoup
-from collections import defaultdict
-
 from django.db import transaction
 from django.utils import timezone
 from django.apps import apps

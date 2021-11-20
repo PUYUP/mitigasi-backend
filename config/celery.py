@@ -45,6 +45,11 @@ app.conf.beat_schedule = {
         'task': 'scraping_bmkg_quake_recent',
         'schedule': crontab(minute='*/10'),
     },
+
+    'scraping-bmkg-twitter-each-20-minutes': {
+        'task': 'scraping_bmkg_twitter',
+        'schedule': crontab(minute='*/10'),
+    },
 }
 
 

@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from copy import copy
 
 from django.contrib.contenttypes.models import ContentType
@@ -13,37 +12,13 @@ from rest_framework import viewsets, status as response_status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.utils.urls import remove_query_param, replace_query_param
 
+from core.drf_helpers import LimitOffsetPaginationExtend
 from .serializers import CreateCommentSerializer, ListCommentSerializer, RetrieveCommentSerializer, UpdateCommentSerializer
 from ....permissions import IsCommentAuthorOrReadOnly
 
 Activity = apps.get_registered_model('generic', 'Activity')
 Comment = apps.get_registered_model('generic', 'Comment')
-
-
-class LimitOffsetPaginationExtend(LimitOffsetPagination):
-    def get_last_link(self):
-        url = self.request.build_absolute_uri()
-        url = replace_query_param(url, self.limit_query_param, self.limit)
-
-        offset = self.count - self.limit
-        return replace_query_param(url, self.offset_query_param, offset)
-
-    def get_first_link(self):
-        url = self.request.build_absolute_uri()
-        return remove_query_param(url, self.offset_query_param)
-
-    def get_paginated_response(self, data):
-        return Response(OrderedDict([
-            ('count', self.count),
-            ('first', self.get_first_link()),
-            ('last', self.get_last_link()),
-            ('next', self.get_next_link()),
-            ('previous', self.get_previous_link()),
-            ('results', data)
-        ]))
 
 
 class BaseViewSet(viewsets.ViewSet):
@@ -110,30 +85,22 @@ class CommentAPIViewSet(BaseViewSet):
                 authored=Exists(activity.filter(user_id=self.request.user.id)),
                 reply_count=Count('parents__child')
             ) \
-            .order_by('create_at') \
             .reverse()
 
         return queryset
 
-    def get_object(self, uuid, for_update=False):
-        queryset = self.get_queryset()
-
-        try:
-            if for_update:
-                instance = queryset.select_for_update().get(uuid=uuid)
-            else:
-                instance = queryset.get(uuid=uuid)
-        except ObjectDoesNotExist:
-            raise NotFound()
-
-        return instance
-
-    def list(self, request):
-        content_type = request.query_params.get('content_type')
-        object_id = request.query_params.get('object_id')
-        user_id = request.query_params.get('user_id')
+    def get_filtered_queryset(self):
+        content_type = self.request.query_params.get('content_type')
+        object_id = self.request.query_params.get('object_id')
+        user_id = self.request.query_params.get('user_id')
+        sort = self.request.query_params.get('sort')
 
         queryset = self.get_queryset()
+
+        if sort != 'newest':
+            queryset = queryset.order_by('create_at')
+        else:
+            queryset = queryset.order_by('-create_at')
 
         if not content_type:
             raise ValidationError(
@@ -170,6 +137,23 @@ class CommentAPIViewSet(BaseViewSet):
         if user_id:
             queryset = queryset.filter(activities__user__hexid=user_id)
 
+        return queryset
+
+    def get_object(self, uuid, for_update=False):
+        queryset = self.get_queryset()
+
+        try:
+            if for_update:
+                instance = queryset.select_for_update().get(uuid=uuid)
+            else:
+                instance = queryset.get(uuid=uuid)
+        except ObjectDoesNotExist:
+            raise NotFound()
+
+        return instance
+
+    def list(self, request):
+        queryset = self.get_filtered_queryset()
         paginator = LimitOffsetPaginationExtend()
         paginate_queryset = paginator.paginate_queryset(queryset, request)
         serializer = ListCommentSerializer(

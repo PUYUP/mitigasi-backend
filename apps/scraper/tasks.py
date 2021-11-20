@@ -1,7 +1,7 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from .target import bmkg_earthquake, bnpb_dibi
+from .target import bmkg_earthquake, bnpb_dibi, bmkg_social_media
 
 logger = get_task_logger(__name__)
 
@@ -22,3 +22,9 @@ def scraping_bmkg_quake_recent():
 def scraping_bnpb_dibi():
     logger.info('scraping bnpb dibi...')
     bnpb_dibi.dibi()
+
+
+@shared_task(name='scraping_bmkg_twitter')
+def scraping_bmkg_twitter():
+    logger.info('scraping bmkg twitter...')
+    bmkg_social_media.twitter()

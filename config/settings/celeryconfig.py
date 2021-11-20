@@ -4,4 +4,4 @@ broker_url = settings.REDIS_URL
 broker_transport_options = {'visibility_timeout': 3600}
 result_backend = settings.REDIS_URL
 task_serializer = 'json'
-task_always_eager = True
+# task_always_eager = True

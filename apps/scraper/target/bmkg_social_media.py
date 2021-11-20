@@ -49,71 +49,73 @@ def twitter(param={}, request=None):
     rsmap = grequests.map(rs)
 
     for r in rsmap:
-        res = r.json()
-        data = res.get('data')
-        includes = res.get('includes', {})
-        media = includes.get('media')
-        users = includes.get('users')
+        if r:
+            res = r.json()
+            data = res.get('data')
+            includes = res.get('includes', {})
+            media = includes.get('media')
+            users = includes.get('users')
 
-        if data and len(data) > 0:
-            data_cleanest = [
-                {
-                    'text': re.sub(r'http\S+', '', t.get('text'), flags=re.MULTILINE),
-                    'attachment_id': t.get('attachments', {}).get('media_keys')[0],
-                    'photo_url': next((x for x in media if x.get('media_key') == t.get('attachments', {}).get('media_keys')[0]), {}).get('url'),
-                    'user': next((x for x in users if x.get('id') == t.get('author_id')), {}).get('name'),
-                } for t in data
-            ]
+            if data and len(data) > 0:
+                data_cleanest = [
+                    {
+                        'text': re.sub(r'http\S+', '', t.get('text'), flags=re.MULTILINE),
+                        'attachment_id': t.get('attachments', {}).get('media_keys')[0],
+                        'photo_url': next((x for x in media if x.get('media_key') == t.get('attachments', {}).get('media_keys')[0]), {}).get('url'),
+                        'user': next((x for x in users if x.get('id') == t.get('author_id')), {}).get('name'),
+                    } for t in data
+                ]
 
-            for d in data_cleanest:
-                text = d.get('text')
-                photo_url = d.get('photo_url')
-                user = d.get('user')
+                for d in data_cleanest:
+                    text = d.get('text')
+                    photo_url = d.get('photo_url')
+                    user = d.get('user')
 
-                # magnitude
-                # mag = text.split(',')[0].replace(' ', '')
-                # mag = float(re.search(r'\d+', mag).group())
+                    # magnitude
+                    # mag = text.split(',')[0].replace(' ', '')
+                    # mag = float(re.search(r'\d+', mag).group())
 
-                data = {
-                    'source': user,
-                    'classify': HazardClassify.HAC105,
-                    'incident': text
-                }
+                    data = {
+                        'source': user,
+                        'classify': HazardClassify.HAC105,
+                        'incident': text
+                    }
 
-                hazard_obj, created = Hazard.objects.update_or_create(**data)
+                    hazard_obj, created = Hazard.objects.update_or_create(
+                        **data)
 
-                # Attachments
-                if photo_url:
-                    # Set up the image URL and filename
-                    filename = photo_url.split("/")[-1]
+                    # Attachments
+                    if photo_url:
+                        # Set up the image URL and filename
+                        filename = photo_url.split("/")[-1]
 
-                    # Open the url image, set stream to True, this will return the stream content.
-                    r = requests.get(photo_url, stream=True)
-                    attachments = list()
+                        # Open the url image, set stream to True, this will return the stream content.
+                        r = requests.get(photo_url, stream=True)
+                        attachments = list()
 
-                    # Check if the image was retrieved successfully
-                    if r.status_code == 200:
-                        # Set decode_content value to True, otherwise the downloaded image file's size will be zero.
-                        r.raw.decode_content = True
+                        # Check if the image was retrieved successfully
+                        if r.status_code == 200:
+                            # Set decode_content value to True, otherwise the downloaded image file's size will be zero.
+                            r.raw.decode_content = True
 
-                        # Retrieve file from root path
-                        filepath = os.path.join(
-                            settings.PROJECT_PATH, filename)
+                            # Retrieve file from root path
+                            filepath = os.path.join(
+                                settings.PROJECT_PATH, filename)
 
-                        # Open a local file with wb ( write binary ) permission.
-                        with open(filename, 'wb') as f:
-                            shutil.copyfileobj(r.raw, f)
+                            # Open a local file with wb ( write binary ) permission.
+                            with open(filename, 'wb') as f:
+                                shutil.copyfileobj(r.raw, f)
 
-                        with open(filepath, 'rb') as f:
-                            fobj = File(f)
-                            attachment = Attachment.objects \
-                                .create(identifier='shakemap')
-                            attachment.file.save(filename, fobj)
-                            attachments.append(attachment)
+                            with open(filepath, 'rb') as f:
+                                fobj = File(f)
+                                attachment = Attachment.objects \
+                                    .create(identifier='shakemap')
+                                attachment.file.save(filename, fobj)
+                                attachments.append(attachment)
 
-                        if len(attachments) > 0:
-                            hazard_obj.set_attachments(attachments, True)
+                            if len(attachments) > 0:
+                                hazard_obj.set_attachments(attachments, True)
 
-                        # delete unused file
-                        if os.path.exists(filepath):
-                            os.remove(filepath)
+                            # delete unused file
+                            if os.path.exists(filepath):
+                                os.remove(filepath)

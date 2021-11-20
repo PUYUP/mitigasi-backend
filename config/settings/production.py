@@ -1,9 +1,9 @@
+import sentry_sdk
+
+from sentry_sdk.integrations.django import DjangoIntegration
 from .project import *
 from .base import *
 from .project import *
-
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 
 DEBUG = False

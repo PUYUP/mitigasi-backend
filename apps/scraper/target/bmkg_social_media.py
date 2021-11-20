@@ -4,12 +4,15 @@ import os
 import shutil
 import requests
 
-from django.db import transaction
-from django.core.files import File
-from django.conf import settings
-from django.apps import apps
-
 from core.constant import HazardClassify
+from django.apps import apps
+from django.conf import settings
+from django.core.files import File
+from django.db import transaction
+
+from gevent import monkey as curious_george
+curious_george.patch_all(thread=False, select=False)
+
 
 Attachment = apps.get_registered_model('generic', 'Attachment')
 Hazard = apps.get_registered_model('threat', 'Hazard')

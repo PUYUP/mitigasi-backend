@@ -93,13 +93,13 @@ class GenericObjSet(object):
         ]
 
     @transaction.atomic
-    def set_eartquake_value(self, **value):
+    def set_eartquake_value(self, **kwargs):
         from apps.threat.models import DISASTER_CLASSIFY_MODEL_MAPPER as mapper
 
         # only for earthquake
         # set `latitude` and `longitude` as epicentrum
         if hasattr(self, 'classify') and self.classify == HazardClassify.HAC105:
-            location = value.get('location', None)
+            location = kwargs.get('location', None)
             data = dict()
 
             if location:

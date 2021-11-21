@@ -84,6 +84,7 @@ class GenericObjSet(object):
         self.locations.set(sorted_locations_obj)
 
         # set `earthquake` location
+        # use case if data coming from user contribution
         if len(sorted_locations_obj) > 0:
             self.set_eartquake_value(location=sorted_locations_obj[0])
 
@@ -102,7 +103,7 @@ class GenericObjSet(object):
             location = kwargs.get('location', None)
             data = dict()
 
-            if location:
+            if location and hasattr(location, 'latitude') and hasattr(location, 'longitude'):
                 data.update({
                     'latitude': location.latitude,
                     'longitude': location.longitude,

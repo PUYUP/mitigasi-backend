@@ -96,6 +96,9 @@ def twitter(param={}, request=None):
                 bt = loc_bt_a or loc_bt_b
                 bt = bt.replace(' ', '')
 
+                latitude = float('-%s' % float(ls))
+                longitude = float(bt)
+
                 # depth
                 try:
                     depth_a = text_lower.split('kedalaman')[1]
@@ -113,13 +116,6 @@ def twitter(param={}, request=None):
                 if depth:
                     depth_float = float(re.search(r'\d+', depth).group())
 
-                earthquake_defaults = {
-                    'latitude': float('-%s' % float(ls)),
-                    'longitude': float(bt),
-                    'magnitude': mag,
-                    'depth': depth_float
-                }
-
                 data = {
                     'source': user,
                     'classify': HazardClassify.HAC105,
@@ -128,10 +124,24 @@ def twitter(param={}, request=None):
 
                 hazard_obj, created = Hazard.objects.update_or_create(**data)
 
+                earthquake_defaults = {
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    'magnitude': mag,
+                    'depth': depth_float
+                }
+
                 Earthquake.objects.update_or_create(
                     hazard=hazard_obj,
                     defaults=earthquake_defaults
                 )
+
+                # set `location` and `impact`
+                locations_data = [
+                    {'latitude': latitude, 'longitude': longitude}
+                ]
+
+                hazard_obj.set_locations(locations_data)
 
                 # Attachments
                 if photo_url:

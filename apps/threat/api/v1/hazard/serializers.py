@@ -152,8 +152,8 @@ class CreateHazardSerializer(BaseHazardSerializer):
         locations = validated_data.pop('locations', None)
         attachments = validated_data.pop('attachments', None)
         defaults = {
-            'user': validated_data.pop('user'),
-            'description': validated_data.pop('description')
+            'user': validated_data.pop('user', None),
+            'description': validated_data.pop('description', None)
         }
 
         instance, created = self.Meta.model.objects \

@@ -57,6 +57,6 @@ def twitter_bmkg(request):
         return Response('OK')
 
     elif request.method == 'POST':
-        if request.user.is_superuser:
-            twitter(param=request.data, request=request)
+        # if request.user.is_superuser:
+        twitter(param=request.data, request=request)
         return Response('OK', status=response_status.HTTP_201_CREATED)

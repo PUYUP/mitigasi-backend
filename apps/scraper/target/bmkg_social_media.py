@@ -97,6 +97,10 @@ def twitter(param={}, request=None):
                 bt = loc_bt_a or loc_bt_b
                 bt = bt.replace(' ', '')
 
+                # check `bt` has comma
+                if ',' in bt:
+                    bt = bt.split(',')[1]
+
                 latitude = float('-%s' % float(ls))
                 longitude = float(bt)
 

@@ -92,7 +92,8 @@ def twitter(param={}, request=None):
                 except IndexError as e:
                     loc_bt_b = None
 
-                ls = loc_ls.replace(' ', '')
+                # make sure from `-` sign
+                ls = loc_ls.replace(' ', '').replace('-', '')
                 bt = loc_bt_a or loc_bt_b
                 bt = bt.replace(' ', '')
 

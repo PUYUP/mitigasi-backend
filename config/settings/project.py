@@ -18,6 +18,7 @@ PROJECT_APPS = [
     'apps.generic',
     'apps.threat',
     'apps.scraper',
+    'apps.territory',
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + PROJECT_APPS

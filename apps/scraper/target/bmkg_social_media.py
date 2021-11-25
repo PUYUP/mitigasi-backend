@@ -4,11 +4,15 @@ import os
 import shutil
 import requests
 
-from core.constant import HazardClassify
+from bs4 import BeautifulSoup
+
 from django.apps import apps
 from django.conf import settings
 from django.core.files import File
 from django.db import transaction
+from django.utils.html import strip_tags
+
+from core.constant import HazardClassify
 
 # from gevent import monkey as curious_george
 # curious_george.patch_all(thread=False, select=False)
@@ -183,3 +187,21 @@ def twitter(param={}, request=None):
                         # delete unused file
                         if os.path.exists(filepath):
                             os.remove(filepath)
+
+
+def ews_bmkg(request):
+    # ref: https://www.w3resource.com/python-exercises/numpy/python-numpy-exercise-18.php
+    url = 'https://www.bmkg.go.id/peringatan-dini/?p=zh2b20211124'
+    page = requests.get(url, verify=False)
+    soup = BeautifulSoup(page.content, "html.parser")
+    results = soup.find('div', {'class': 'content'}).findChildren('p')
+
+    for result in results:
+        if result:
+            loc = result.text.split(',')
+            #loc_a = result.text.split(' di ')
+            #loc_a_x = loc_a[1].split(' dan dapat meluas ke wilayah ')
+            #loc_b = result.text.split(' meluas ke wilayah ')
+
+            print(loc)
+            print(len(loc))

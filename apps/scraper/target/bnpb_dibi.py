@@ -1,11 +1,9 @@
 import requests
 
-from django.utils import timezone
 from django.apps import apps
 from django.db import transaction
 
 from bs4 import BeautifulSoup
-from collections import defaultdict
 
 Hazard = apps.get_registered_model('threat', 'Hazard')
 

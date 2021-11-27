@@ -29,6 +29,8 @@ def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
 
+"""
+# temporary disabled to many data not necessary
 app.conf.beat_schedule = {
     # Scheduler Name
     'scraping-bnbp-dibi-each-4-hours': {
@@ -51,7 +53,7 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute='*/10'),
     },
 }
-
+"""
 
 if __name__ == '__main__':
     app.start()
